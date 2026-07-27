@@ -1,0 +1,7 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 PicoNVIDIA
+# SPDX-License-Identifier: Apache-2.0
+
+interface:
+  display_name: "Connect NemoClaw Agents"
+  short_description: "Configure a safe Slack agent-to-agent room."
+  default_prompt: "Configure this NemoClaw agent for a restricted Slack A2A model.info handshake, validate it synthetically, and do not send a live request."
