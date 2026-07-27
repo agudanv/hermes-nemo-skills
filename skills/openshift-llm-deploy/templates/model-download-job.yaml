@@ -1,0 +1,151 @@
+# Render every ${...} placeholder before applying. This is an agent template,
+# not a ready-to-apply manifest. The downloader is the only model-serving
+# resource that receives HF_TOKEN. It deletes the token value from the
+# chart-owned Secret before it exits, then the GPU workload starts from the
+# local PVC path.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ${RELEASE}-model-cache
+  namespace: ${NAMESPACE}
+  labels:
+    app.kubernetes.io/name: model-download
+    app.kubernetes.io/instance: ${RELEASE}
+    app.kubernetes.io/managed-by: hermes
+    app.kubernetes.io/component: inference
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: ${STORAGE_CLASS}
+  resources:
+    requests:
+      storage: ${PVC_SIZE}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ${RELEASE}-model-download
+  namespace: ${NAMESPACE}
+  labels:
+    app.kubernetes.io/name: model-download
+    app.kubernetes.io/instance: ${RELEASE}
+    app.kubernetes.io/managed-by: hermes
+    app.kubernetes.io/component: inference
+spec:
+  backoffLimit: 1
+  activeDeadlineSeconds: ${DOWNLOAD_TIMEOUT_SECONDS}
+  ttlSecondsAfterFinished: 60
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: model-download
+        app.kubernetes.io/instance: ${RELEASE}
+        app.kubernetes.io/managed-by: hermes
+        app.kubernetes.io/component: inference
+    spec:
+      serviceAccountName: llm-runner
+      # The ServiceAccount is mounted only so the process can delete the one
+      # fixed chart-owned Secret after a terminal download result.
+      automountServiceAccountToken: true
+      restartPolicy: Never
+      nodeSelector:
+        kubernetes.io/hostname: ${NODE_NAME}
+      containers:
+        - name: model-download
+          image: ${DOWNLOAD_IMAGE}
+          imagePullPolicy: IfNotPresent
+          command: ["python3", "-c"]
+          args:
+            - |
+              import json
+              import os
+              import ssl
+              from pathlib import Path
+              from urllib.error import HTTPError
+              from urllib.parse import quote
+              from urllib.request import Request, urlopen
+
+              from huggingface_hub import snapshot_download
+
+              model_id = os.environ["MODEL_ID"]
+              model_dir = Path("/models/model")
+              hf_token = os.environ.pop("HF_TOKEN", "")
+              delete_after_download = os.environ.get("DELETE_TOKEN_AFTER_DOWNLOAD", "true").lower() == "true"
+
+              def clear_token_secret():
+                  if not delete_after_download:
+                      print("HF_TOKEN_SECRET=retained-by-configuration")
+                      return
+                  namespace = os.environ["POD_NAMESPACE"]
+                  secret_name = os.environ["HF_TOKEN_SECRET_NAME"]
+                  service_token = Path("/var/run/secrets/kubernetes.io/serviceaccount/token").read_text(encoding="utf-8").strip()
+                  ca_path = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+                  host = os.environ["KUBERNETES_SERVICE_HOST"]
+                  port = os.environ.get("KUBERNETES_SERVICE_PORT_HTTPS", "443")
+                  url = f"https://{host}:{port}/api/v1/namespaces/{quote(namespace, safe='')}/secrets/{quote(secret_name, safe='')}"
+                  patch = b'[{"op":"remove","path":"/data/HF_TOKEN"}]'
+                  request = Request(
+                      url,
+                      data=patch,
+                      method="PATCH",
+                      headers={
+                          "Authorization": f"Bearer {service_token}",
+                          "Accept": "application/json",
+                          "Content-Type": "application/json-patch+json",
+                      },
+                  )
+                  context = ssl.create_default_context(cafile=ca_path)
+                  try:
+                      with urlopen(request, timeout=20, context=context) as response:
+                          if response.status != 200:
+                              raise RuntimeError(f"unexpected token-clear status: {response.status}")
+                  except HTTPError as exc:
+                      # A 422 means another cleanup already removed the key.
+                      # The Secret object remains as the writer's fixed, safe
+                      # patch target for the next masked submission.
+                      if exc.code != 422:
+                          raise
+                  print("HF_TOKEN_SECRET=cleared-after-model-download")
+
+              download_error = None
+              try:
+                  snapshot_download(repo_id=model_id, local_dir=str(model_dir), token=hf_token)
+                  if not (model_dir / "config.json").is_file():
+                      raise RuntimeError("download completed without config.json")
+                  (model_dir / ".hermes-model-ready").write_text(json.dumps({"model": model_id}) + "\n", encoding="utf-8")
+                  print("MODEL_DOWNLOAD_RESULT=ready")
+              except Exception as exc:
+                  download_error = exc
+                  print(f"MODEL_DOWNLOAD_RESULT=failed:{type(exc).__name__}")
+              finally:
+                  hf_token = ""
+                  os.environ.pop("HF_TOKEN", None)
+                  clear_token_secret()
+              if download_error is not None:
+                  raise download_error
+          env:
+            - name: MODEL_ID
+              value: ${MODEL_ID}
+            - name: HF_HOME
+              value: /models
+            - name: HF_HUB_CACHE
+              value: /models/hub
+            - name: HF_HUB_DISABLE_TELEMETRY
+              value: "1"
+            - name: HF_TOKEN_SECRET_NAME
+              value: ${HF_SECRET_NAME}
+            - name: POD_NAMESPACE
+              value: ${NAMESPACE}
+            - name: DELETE_TOKEN_AFTER_DOWNLOAD
+              value: ${DELETE_TOKEN_AFTER_DOWNLOAD}
+            - name: HF_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: ${HF_SECRET_NAME}
+                  key: HF_TOKEN
+          volumeMounts:
+            - name: model-cache
+              mountPath: /models
+      volumes:
+        - name: model-cache
+          persistentVolumeClaim:
+            claimName: ${RELEASE}-model-cache

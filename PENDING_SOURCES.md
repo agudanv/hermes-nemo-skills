@@ -2,8 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Pending Sources
 
-The requested local source was not mounted on the build host when this catalog was created:
+No sources are currently pending.
 
-`/Users/aguda/Library/CloudStorage/OneDrive-NVIDIACorporation/NVIDIA/openshell-hermes/charts/hermes-webui-openshell/files`
-
-Add its reviewed Hermes skill directories under `skills/` after the OneDrive path is available, then run `scripts/validate-skills.sh` and update `CATALOG.md`.
+The previously unavailable `openshell-hermes` chart skill was imported as
+[`openshift-llm-deploy`](skills/openshift-llm-deploy/SKILL.md). Its source and
+runtime prerequisites are recorded in the bundled
+[`SOURCE.md`](skills/openshift-llm-deploy/SOURCE.md).
