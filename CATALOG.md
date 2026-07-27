@@ -3,4 +3,3 @@
 # Skill Catalog
 
 This index is generated from the reviewed `skills/` tree.
-
