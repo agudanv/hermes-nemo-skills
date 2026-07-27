@@ -34,7 +34,7 @@ or NodePort endpoint after deployment.
   workspace file, place it in a ConfigMap, or include it in a command
   transcript. The agent has no Secret-read permission and must never attempt
   to inspect a credential value.
-- Read `${HERMES_HOME}/skills/openshift-llm-deploy/hf-token-intake.yaml` before
+- Read `${HERMES_HOME}/skills/operations/openshift-llm-deploy/hf-token-intake.yaml` before
   handling a Hugging Face model. When `enabled: true` and
   `requireTokenForHuggingFaceModels: true` (the chart default), invoke the
   `clarify` tool as the first assistant action before any text response,
@@ -126,7 +126,7 @@ command before answering. Make no cluster changes and do not ask for an HF
 token or deployment confirmation:
 
 ```sh
-SKILL_ROOT="${HERMES_HOME}/skills/openshift-llm-deploy"
+SKILL_ROOT="${HERMES_HOME}/skills/operations/openshift-llm-deploy"
 "$SKILL_ROOT/scripts/cluster-status.sh"
 ```
 
@@ -147,24 +147,24 @@ endpoint workflow below.
 Use the assets below; they avoid long, repetitive tool loops:
 
 ```text
-${HERMES_HOME}/skills/openshift-llm-deploy/dynamo-defaults.yaml
-${HERMES_HOME}/skills/openshift-llm-deploy/templates/dynamo-vllm-graph-deployment.yaml
-${HERMES_HOME}/skills/openshift-llm-deploy/templates/dynamo-tensorrtllm-graph-deployment.yaml
-${HERMES_HOME}/skills/openshift-llm-deploy/scripts/render-template.py
-${HERMES_HOME}/skills/openshift-llm-deploy/scripts/list-storage-classes.sh
-${HERMES_HOME}/skills/openshift-llm-deploy/scripts/dynamo-first-deploy.sh
-${HERMES_HOME}/skills/openshift-llm-deploy/scripts/resolve-vllm-image.sh
-${HERMES_HOME}/skills/openshift-llm-deploy/scripts/deploy-model.sh
-${HERMES_HOME}/skills/openshift-llm-deploy/scripts/diagnose-deployment.sh
-${HERMES_HOME}/skills/openshift-llm-deploy/scripts/verify-openai-endpoint.sh
-${HERMES_HOME}/skills/openshift-llm-deploy/scripts/remove-model.sh
+${HERMES_HOME}/skills/operations/openshift-llm-deploy/dynamo-defaults.yaml
+${HERMES_HOME}/skills/operations/openshift-llm-deploy/templates/dynamo-vllm-graph-deployment.yaml
+${HERMES_HOME}/skills/operations/openshift-llm-deploy/templates/dynamo-tensorrtllm-graph-deployment.yaml
+${HERMES_HOME}/skills/operations/openshift-llm-deploy/scripts/render-template.py
+${HERMES_HOME}/skills/operations/openshift-llm-deploy/scripts/list-storage-classes.sh
+${HERMES_HOME}/skills/operations/openshift-llm-deploy/scripts/dynamo-first-deploy.sh
+${HERMES_HOME}/skills/operations/openshift-llm-deploy/scripts/resolve-vllm-image.sh
+${HERMES_HOME}/skills/operations/openshift-llm-deploy/scripts/deploy-model.sh
+${HERMES_HOME}/skills/operations/openshift-llm-deploy/scripts/diagnose-deployment.sh
+${HERMES_HOME}/skills/operations/openshift-llm-deploy/scripts/verify-openai-endpoint.sh
+${HERMES_HOME}/skills/operations/openshift-llm-deploy/scripts/remove-model.sh
 ```
 
 ### 1. Establish the target and Dynamo capability
 
 ```sh
 NAMESPACE=$(/chart-bin/oc project -q)
-SKILL_ROOT="${HERMES_HOME}/skills/openshift-llm-deploy"
+SKILL_ROOT="${HERMES_HOME}/skills/operations/openshift-llm-deploy"
 OBSERVATION_TIMEOUT_SECONDS=$(awk -F ': ' '/^observationTimeoutSeconds:/ {print $2; exit}' "$SKILL_ROOT/dynamo-defaults.yaml")
 VERIFICATION_TIMEOUT_SECONDS=$(awk -F ': ' '/^verificationTimeoutSeconds:/ {print $2; exit}' "$SKILL_ROOT/dynamo-defaults.yaml")
 /chart-bin/oc api-resources --api-group=nvidia.com -o wide
@@ -445,7 +445,7 @@ For delete or uninstall requests, inventory both possible serving paths before
 asking for confirmation:
 
 ```sh
-SKILL_ROOT="${HERMES_HOME}/skills/openshift-llm-deploy"
+SKILL_ROOT="${HERMES_HOME}/skills/operations/openshift-llm-deploy"
 "$SKILL_ROOT/scripts/remove-model.sh" \
   --namespace "$NAMESPACE" \
   --release "$RELEASE" \

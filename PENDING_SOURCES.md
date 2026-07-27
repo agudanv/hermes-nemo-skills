@@ -5,6 +5,6 @@
 No sources are currently pending.
 
 The previously unavailable `openshell-hermes` chart skill was imported as
-[`openshift-llm-deploy`](skills/openshift-llm-deploy/SKILL.md). Its source and
+[`openshift-llm-deploy`](skills/operations/openshift-llm-deploy/SKILL.md). Its source and
 runtime prerequisites are recorded in the bundled
-[`SOURCE.md`](skills/openshift-llm-deploy/SOURCE.md).
+[`SOURCE.md`](skills/operations/openshift-llm-deploy/SOURCE.md).

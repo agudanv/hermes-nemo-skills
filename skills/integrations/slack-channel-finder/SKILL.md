@@ -25,13 +25,13 @@ scopes or might be missing scopes
 
 Check for scripts at:
 ```
-/sandbox/.hermes-data/skills/slack-channel-finder/scripts/
+/sandbox/.hermes-data/skills/integrations/slack-channel-finder/scripts/
 ```
 
 or at 
 
 ```
-/sandbox/.hermes/skills/slack-channel-finder/scripts
+/sandbox/.hermes/skills/integrations/slack-channel-finder/scripts
 ```
 
 
@@ -66,7 +66,7 @@ For topic or team queries, use `find_channel.py` — it searches all discoverabl
 public channels (not just bot-member channels) and returns scored matches:
 
 ```bash
-/usr/bin/python3 /sandbox/.hermes-data/skills/slack-channel-finder/scripts/find_channel.py \
+/usr/bin/python3 /sandbox/.hermes-data/skills/integrations/slack-channel-finder/scripts/find_channel.py \
   --query "nemoclaw inference" --top 5
 ```
 

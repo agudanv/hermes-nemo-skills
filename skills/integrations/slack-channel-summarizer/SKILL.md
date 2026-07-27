@@ -41,19 +41,19 @@ includes recent human messages and channel metadata that are sufficient for a
 summary:
 
 ```bash
-/usr/bin/python3 /sandbox/.hermes-data/skills/slack-channel-finder/scripts/describe_slack_channel.py \
+/usr/bin/python3 /sandbox/.hermes-data/skills/integrations/slack-channel-finder/scripts/describe_slack_channel.py \
   --channel-id CHANNEL_ID --history-limit 15
 ```
 
 Useful variants:
 
 ```bash
-/usr/bin/python3 /sandbox/.hermes-data/skills/slack-channel-finder/scripts/describe_slack_channel.py \
+/usr/bin/python3 /sandbox/.hermes-data/skills/integrations/slack-channel-finder/scripts/describe_slack_channel.py \
   --channel-id CHANNEL_ID --history-limit 30 --replies
 ```
 
 ```bash
-/usr/bin/python3 /sandbox/.hermes-data/skills/slack-channel-finder/scripts/describe_slack_channel.py \
+/usr/bin/python3 /sandbox/.hermes-data/skills/integrations/slack-channel-finder/scripts/describe_slack_channel.py \
   --channel-id CHANNEL_ID --history-limit 15 --resolve-users
 ```
 

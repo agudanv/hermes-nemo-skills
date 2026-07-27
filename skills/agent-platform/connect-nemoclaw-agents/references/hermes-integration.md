@@ -31,7 +31,7 @@ For the `personal-community-sentiment-triage` example in current
 - `agents/hermes/Dockerfile`
 - `agents/hermes/generate-config.ts`
 - `agents/hermes/SOUL.md`
-- `agents/hermes/skills/agent-collaboration/SKILL.md`
+- `agents/hermes/skills/agent-platform/agent-collaboration/SKILL.md`
 - `scripts/03-sandbox.sh`
 - `.env.example` and `.env.example.s3`
 - focused policy and integration tests

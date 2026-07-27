@@ -47,12 +47,12 @@ returns a generic access-denied response instead.
 
 The scripts are at:
 ```
-/sandbox/.hermes-data/skills/outlook-email-search/scripts/search_emails.py
-/sandbox/.hermes-data/skills/outlook-email-search/scripts/get_thread.py
+/sandbox/.hermes-data/skills/integrations/outlook-email-search/scripts/search_emails.py
+/sandbox/.hermes-data/skills/integrations/outlook-email-search/scripts/get_thread.py
 ```
 
 ```bash
-/usr/bin/python3 /sandbox/.hermes-data/skills/outlook-email-search/scripts/search_emails.py [OPTIONS]
+/usr/bin/python3 /sandbox/.hermes-data/skills/integrations/outlook-email-search/scripts/search_emails.py [OPTIONS]
 ```
 
 **Options:**
@@ -108,7 +108,7 @@ When you need the complete back-and-forth of an email conversation, use
 `get_thread.py` with the `conversation_id` from a search result:
 
 ```bash
-/usr/bin/python3 /sandbox/.hermes-data/skills/outlook-email-search/scripts/get_thread.py \
+/usr/bin/python3 /sandbox/.hermes-data/skills/integrations/outlook-email-search/scripts/get_thread.py \
   --conversation-id "AAQkADlh..."
 ```
 

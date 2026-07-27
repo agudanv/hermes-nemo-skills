@@ -69,13 +69,13 @@ uv run autoctx hermes inspect --home "$HERMES_HOME" --json
 Install or refresh this skill into a Hermes profile:
 
 ```bash
-uv run autoctx hermes export-skill --output ~/.hermes/skills/autocontext/SKILL.md --json
+uv run autoctx hermes export-skill --output ~/.hermes/skills/agent-platform/autocontext/SKILL.md --json
 ```
 
 If the file already exists and the user wants to replace it:
 
 ```bash
-uv run autoctx hermes export-skill --output ~/.hermes/skills/autocontext/SKILL.md --force --json
+uv run autoctx hermes export-skill --output ~/.hermes/skills/agent-platform/autocontext/SKILL.md --force --json
 ```
 
 ## Running Autocontext From Hermes

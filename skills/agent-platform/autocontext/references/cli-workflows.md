@@ -25,7 +25,7 @@ Output: JSON summary with `skills`, `bundled_skill_count`,
 ## Install the autocontext skill into Hermes
 
 ```bash
-autoctx hermes export-skill     --output ~/.hermes/skills/autocontext/SKILL.md     --json
+autoctx hermes export-skill     --output ~/.hermes/skills/agent-platform/autocontext/SKILL.md     --json
 ```
 
 Add `--force` to overwrite. Add `--with-references` (when this

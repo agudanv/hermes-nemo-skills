@@ -17,9 +17,9 @@ provides the following runtime integration:
 
 - `/chart-bin/oc` and `/chart-bin/kubectl` wrappers with a projected local
   service-account token.
-- `${HERMES_HOME}/skills/openshift-llm-deploy/dynamo-defaults.yaml`, rendered
+- `${HERMES_HOME}/skills/operations/openshift-llm-deploy/dynamo-defaults.yaml`, rendered
   from the chart's values.
-- `${HERMES_HOME}/skills/openshift-llm-deploy/hf-token-intake.yaml`, rendered
+- `${HERMES_HOME}/skills/operations/openshift-llm-deploy/hf-token-intake.yaml`, rendered
   from the chart's Hugging Face token-intake settings when that flow is enabled.
 - The `llm-runner` ServiceAccount and the RBAC, Secret lifecycle, and runtime
   resources described by the chart.

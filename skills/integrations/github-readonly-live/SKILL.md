@@ -72,13 +72,13 @@ the user the helper error and stop. Do not diagnose by inspecting token env vars
 requests, or alternate GitHub hosts.
 
 ```bash
-/usr/bin/python3 /sandbox/.hermes-data/skills/github-readonly-live/scripts/github_readonly.py rate-limit
-/usr/bin/python3 /sandbox/.hermes-data/skills/github-readonly-live/scripts/github_readonly.py get . --fields full_name,description,open_issues_count
-/usr/bin/python3 /sandbox/.hermes-data/skills/github-readonly-live/scripts/github_readonly.py get issues --param state=open --limit 20 --exclude-pulls --fields number,title,state,html_url
-/usr/bin/python3 /sandbox/.hermes-data/skills/github-readonly-live/scripts/github_readonly.py get issues/<number>/comments --paginate --fields user.login,created_at,body
-/usr/bin/python3 /sandbox/.hermes-data/skills/github-readonly-live/scripts/github_readonly.py get pulls --param state=open --paginate --count
-/usr/bin/python3 /sandbox/.hermes-data/skills/github-readonly-live/scripts/github_readonly.py get pulls/<number>/files --paginate --fields filename,status,changes
-/usr/bin/python3 /sandbox/.hermes-data/skills/github-readonly-live/scripts/github_readonly.py get contents/<path>
+/usr/bin/python3 /sandbox/.hermes-data/skills/integrations/github-readonly-live/scripts/github_readonly.py rate-limit
+/usr/bin/python3 /sandbox/.hermes-data/skills/integrations/github-readonly-live/scripts/github_readonly.py get . --fields full_name,description,open_issues_count
+/usr/bin/python3 /sandbox/.hermes-data/skills/integrations/github-readonly-live/scripts/github_readonly.py get issues --param state=open --limit 20 --exclude-pulls --fields number,title,state,html_url
+/usr/bin/python3 /sandbox/.hermes-data/skills/integrations/github-readonly-live/scripts/github_readonly.py get issues/<number>/comments --paginate --fields user.login,created_at,body
+/usr/bin/python3 /sandbox/.hermes-data/skills/integrations/github-readonly-live/scripts/github_readonly.py get pulls --param state=open --paginate --count
+/usr/bin/python3 /sandbox/.hermes-data/skills/integrations/github-readonly-live/scripts/github_readonly.py get pulls/<number>/files --paginate --fields filename,status,changes
+/usr/bin/python3 /sandbox/.hermes-data/skills/integrations/github-readonly-live/scripts/github_readonly.py get contents/<path>
 ```
 
 Generic route rules:
