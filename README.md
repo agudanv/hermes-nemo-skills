@@ -10,6 +10,7 @@ A curated, directly installable Hermes skill bundle for NemoClaw/OpenShell deplo
 - `CATALOG.md` is the organized index of every `SKILL.md` in this repository.
 - `scripts/validate-skills.sh` verifies that skill metadata is present before publishing or installation.
 - `PENDING_SOURCES.md` records requested sources that were not available on the build host.
+- `SOURCE_NOTICES.md` preserves the source and license record for redistributed material.
 
 ## Install
 

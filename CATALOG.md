@@ -10,9 +10,14 @@ This index is generated from the reviewed `skills/` tree.
 - `operations/`: DevOps, Kubernetes, Docker, OpenShift, observability, Argo CD/CI-CD, incidents, SRE, and production readiness.
 - `integrations/`: Slack, Outlook, GitHub, and cross-source data work.
 - `workflows/`: software development, productivity, creative work, social media, smart home, and gaming.
-- `third-party/`: reviewed external documentation bundles organized by operations category.
 
 See [`skills/CATEGORIES.md`](skills/CATEGORIES.md) for the browsing guide.
+
+## Operations Learning
+
+- [`devops-learning-path`](skills/operations/devops-learning-path/SKILL.md):
+  Turn a hands-on DevOps goal into a focused, safe, evidence-based sequence of
+  Linux, cloud, Kubernetes, SRE, CI/CD, Git, or DevSecOps practice.
 
 ## OpenShift Model Serving
 
@@ -22,17 +27,17 @@ See [`skills/CATEGORIES.md`](skills/CATEGORIES.md) for the browsing guide.
   supported Dynamo deployment and uses standard vLLM only after an explicit
   Dynamo failure.
 
-## Third-Party Operations Collection
+## Functional Skill Collections
 
-`skills/third-party/` contains 244 additional, source-namespaced skill definitions arranged by function:
+The 244 reviewed skill documents are organized beside canonical skills:
 
-- `kubernetes/`: Kubernetes, OpenShift, manifests, Helm, cluster operations, and platform troubleshooting.
-- `docker/`: Docker container workflows.
-- `observability/`: metrics, logs, traces, Prometheus, Grafana, Loki, and OpenTelemetry.
-- `argocd-cicd/`: Argo CD, GitOps, CI/CD, and deployment pipelines.
-- `devops/`: general DevOps, delivery, automation, and technical documentation.
-- `sre/`: incident response, reliability, and infrastructure coordination.
-- `shell/`: shell scripting and shell quality checks.
-- `agent-platform/`: Hermes-oriented agent, memory, and workflow guidance.
+- `skills/agent-platform/tooling/`: agent extensions, memory, model, and workflow guidance.
+- `skills/operations/ci-cd/`: Argo CD, GitOps, secrets, and delivery pipelines.
+- `skills/operations/devops/`: infrastructure automation, foundations, documentation, and general DevOps practice.
+- `skills/operations/docker/`: container fundamentals and Docker workflows.
+- `skills/operations/kubernetes/`: cluster operations, GitOps, manifests, security, networking, and platform management.
+- `skills/operations/observability/`: metrics, logs, traces, Grafana, Loki, OpenTelemetry, Prometheus, and SLOs.
+- `skills/operations/shell/`: shell quality checks, defensive scripting, and prompt configuration.
+- `skills/operations/sre/`: reliability and infrastructure coordination.
 
-See [`skills/third-party/PROVENANCE.md`](skills/third-party/PROVENANCE.md) for source mapping and license handling.
+See [`SOURCE_NOTICES.md`](SOURCE_NOTICES.md) for source and license handling.
