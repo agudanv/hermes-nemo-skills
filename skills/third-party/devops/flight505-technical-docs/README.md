@@ -2,7 +2,7 @@
 
 Technical documentation skills including API docs, README writing, and documentation systems.
 
-## Skills (25)
+## Skills (24)
 
 - [adr-generator](./adr-generator/SKILL.md)
 - [api-reference-creator](./api-reference-creator/SKILL.md)
@@ -24,7 +24,6 @@ Technical documentation skills including API docs, README writing, and documenta
 - [quickstart-guide-generator](./quickstart-guide-generator/SKILL.md)
 - [readme-generator](./readme-generator/SKILL.md)
 - [release-notes-generator](./release-notes-generator/SKILL.md)
-- [runbook-creator](./runbook-creator/SKILL.md)
 - [sdk-documentation-generator](./sdk-documentation-generator/SKILL.md)
 - [troubleshooting-guide-creator](./troubleshooting-guide-creator/SKILL.md)
 - [tutorial-outline-creator](./tutorial-outline-creator/SKILL.md)

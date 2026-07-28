@@ -24,7 +24,7 @@ See [`skills/CATEGORIES.md`](skills/CATEGORIES.md) for the browsing guide.
 
 ## Third-Party Operations Collection
 
-`skills/third-party/` contains 251 additional, source-namespaced skill definitions arranged by function:
+`skills/third-party/` contains 244 additional, source-namespaced skill definitions arranged by function:
 
 - `kubernetes/`: Kubernetes, OpenShift, manifests, Helm, cluster operations, and platform troubleshooting.
 - `docker/`: Docker container workflows.

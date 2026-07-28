@@ -21,3 +21,16 @@ not copy their prose, executable code, credentials, or plugin hooks. Imported bu
 
 All skills remain subject to NemoClaw's gateway policy. A skill does not grant
 network, credential, Slack, Outlook, or host-system access.
+
+## De-duplicated Canonical Skills
+
+The bundle avoids activating equivalent guidance twice. Where an imported
+third-party skill overlapped a more complete curated skill, the third-party
+copy was omitted and the canonical copy is retained in its functional category:
+
+- `claude-code`, `codex`, `hermes-agent`, `native-mcp`, and `opencode` are in
+  `skills/agent-platform/`.
+- `webhook-subscriptions` and `runbook-creator` are in `skills/operations/`.
+
+Other third-party skills remain source-namespaced when their content or scope
+is meaningfully distinct from the curated collection.
