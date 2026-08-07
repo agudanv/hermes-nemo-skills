@@ -30,12 +30,33 @@ from pathlib import Path
 BRIDGE = Path(__file__).parent / "gws_bridge.py"
 PYTHON = sys.executable
 
+# Only these variables are forwarded to the bridge subprocess. Passing the full
+# parent environment would hand every unrelated credential in the session
+# (cloud keys, tokens from other skills) to a child process that does not need
+# them, so the allowlist is explicit.
+ENV_ALLOWLIST = (
+    "PATH", "HOME", "USER", "LANG", "LC_ALL", "TMPDIR",
+    "HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY",
+    "http_proxy", "https_proxy", "no_proxy",
+    "GWS_CONFIG_DIR", "GOOGLE_APPLICATION_CREDENTIALS",
+)
+
+
+def _child_env() -> dict:
+    """Build a minimal environment for the bridge subprocess."""
+    env = {k: os.environ[k] for k in ENV_ALLOWLIST if k in os.environ}
+    env["HERMES_HOME"] = os.environ.get("HERMES_HOME", str(Path.home() / ".hermes"))
+    return env
+
 
 def gws(*args: str) -> None:
     """Call gws via the bridge and exit with its return code."""
+    # shell=False (the default with a list argv): arguments are never re-parsed
+    # by a shell, so user-supplied values cannot inject additional commands.
     result = subprocess.run(
         [PYTHON, str(BRIDGE)] + list(args),
-        env={**os.environ, "HERMES_HOME": os.environ.get("HERMES_HOME", str(Path.home() / ".hermes"))},
+        shell=False,
+        env=_child_env(),
     )
     sys.exit(result.returncode)
 

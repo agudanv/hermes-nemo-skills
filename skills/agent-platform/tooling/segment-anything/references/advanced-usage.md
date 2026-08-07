@@ -7,7 +7,7 @@
 SAM 2 extends SAM to video segmentation with streaming memory architecture:
 
 ```bash
-pip install git+https://github.com/facebookresearch/segment-anything-2.git
+pip install git+https://github.com/facebookresearch/segment-anything-2.git@2b90b9f5ceec907a1c18123530e92e794ad901a4
 ```
 
 ### Video segmentation
@@ -50,7 +50,7 @@ for frame_idx, masks in predictor.propagate_in_video():
 
 ```bash
 pip install groundingdino-py
-pip install git+https://github.com/facebookresearch/segment-anything.git
+pip install git+https://github.com/facebookresearch/segment-anything.git@dca509fe793f601edb92606367a655c15ac00fdf
 ```
 
 ### Text-to-mask pipeline

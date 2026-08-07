@@ -1,0 +1,440 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# SkillSpector suppression baseline for hermes-nemo-skills.
+# Docs: https://github.com/NVIDIA/skillspector/blob/main/docs/SUPPRESSION.md
+#
+# REVIEW POLICY
+# -------------
+# This bundle is a library of *operational documentation* for an agent: its
+# SKILL.md and reference files necessarily describe credentials, API endpoints,
+# privileged Kubernetes workloads, and destructive commands, because teaching an
+# agent to operate those systems is the point. Static pattern matching cannot
+# distinguish "this document mentions ~/.ssh/id_ed25519" from "this code reads
+# ~/.ssh/id_ed25519 and uploads it."
+#
+# Every rule below is therefore scoped with `path:` to Markdown documentation.
+# Findings in executable components (.py, .sh, .ts, .yaml manifests) are NOT
+# suppressed: they must be fixed, or justified with their own narrowly-scoped
+# rule naming the specific file.
+#
+# Re-triage this file whenever a new skill category is added. Review what it is
+# currently hiding with:
+#   skillspector scan . --recursive --baseline .skillspector-baseline.yaml --show-suppressed
+
+version: 2
+
+rules:
+  # --- Credential and secret references in prose -----------------------------
+  - id: "PE3"
+    path: "skills/*.md"
+    reason: >-
+      Documentation names credential locations (.env, ~/.ssh/id_ed25519, "Access
+      Token") so operators know which secrets to provision. No skill stores,
+      prints, or transmits a credential; skills reference them only by
+      environment-variable name. Executable files are intentionally not covered
+      by this rule.
+
+  - id: "E2"
+    path: "skills/*.md"
+    reason: >-
+      Environment-variable reads shown in example snippets are the documented,
+      correct way to supply a token to a skill. Actual os.environ reads in
+      scripts remain unsuppressed and are reviewed individually.
+
+  # --- Outbound API calls that are the skill's stated purpose ----------------
+  - id: "E1"
+    path: "skills/*.md"
+    reason: >-
+      "External transmission" matches the vendor API endpoints each integration
+      skill exists to call (api.github.com, api.linear.app, slack.com/api,
+      api.semanticscholar.org). The destination is the documented service, not
+      an attacker-controlled sink.
+
+  - id: "E4"
+    path: "skills/*.md"
+    reason: >-
+      "Context leakage" matches the phrase "capture context" in Kubernetes
+      troubleshooting docs, which refers to collecting cluster diagnostic
+      context locally, not exporting agent context off-host.
+
+  - id: "P6"
+    path: "skills/*.md"
+    reason: >-
+      Matches the words "output"/"prompt" adjacent in LLM-tooling docs (axolotl,
+      outlines) describing model prompt formatting. No system-prompt extraction.
+
+  # --- Kubernetes / container security teaching material ---------------------
+  - id: "TM4"
+    path: "skills/*.md"
+    reason: >-
+      privileged/hostNetwork/hostPath appear in files named do-dont-patterns.md,
+      insecure-workload-defaults.md, and network-exposure.md, which exist to
+      teach operators to recognize and remediate these settings. The one
+      applied use (node-problem-detector in cluster-admin) carries an inline
+      justification comment.
+
+  - id: "PE5"
+    path: "skills/*.md"
+    reason: >-
+      --net=host / --pid=host appear in Docker and k8s-security reference
+      material explaining namespace sharing and its risks.
+
+  - id: "SSRF1"
+    path: "skills/*.md"
+    reason: >-
+      169.254.169.254 appears in kubernetes network-exposure documentation as
+      the cloud metadata endpoint operators are instructed to BLOCK via
+      NetworkPolicy. It is the remediation target, not a request destination.
+
+  - id: "PE2"
+    path: "skills/*.md"
+    reason: >-
+      sudo appears in installation and node-maintenance instructions intended
+      for a human operator on their own workstation or node.
+
+  # --- Destructive-command documentation ------------------------------------
+  - id: "TM1"
+    path: "skills/*.md"
+    reason: >-
+      Matches documented DELETE endpoints (Grafana, ArgoCD, X API) and rm/git
+      reset examples in troubleshooting and testing guides. The hermes-agent
+      match is in the section documenting the approval prompt that GATES these
+      commands.
+
+  - id: "TM2"
+    path: "skills/*.md"
+    reason: >-
+      "Chaining" matches shell pipelines in install and cleanup examples
+      (`| xargs rm` over a scoped glob, `&& sudo` in a documented install step).
+      The two genuine `curl | bash` instances were fixed, not suppressed.
+
+  - id: "TM3"
+    path: "skills/*.md"
+    reason: >-
+      NODE_ENV=development and auth=false appear in docs that explicitly label
+      them as development-only settings to be changed for production.
+
+  # --- Prose and metadata pattern noise --------------------------------------
+  - id: "P2"
+    path: "skills/*.md"
+    message: "*SPDX-*"
+    reason: >-
+      "Hidden instructions" matches SPDX license headers written as HTML
+      comments, which is the standard machine-readable licensing convention.
+      Invisible Unicode characters flagged by this rule elsewhere were stripped
+      from the source rather than suppressed.
+
+  - id: "P2"
+    path: "skills/*/templates/*.html"
+    reason: >-
+      Matches explanatory HTML comments in user-facing starter templates
+      ("USE THIS AS THE STARTING POINT"), addressed to the human editing the
+      template.
+
+  - id: "P4"
+    path: "skills/agent-platform/tooling/opencli-skill/SKILL.md"
+    reason: >-
+      "ALWAYS prefer opencli over ..." is a tool-selection preference in the
+      skill's own description field — the normal way a skill states when it
+      applies — not an attempt to override agent behavior globally.
+
+  - id: "AR3"
+    path: "skills/agent-platform/tooling/research-paper-writing/*"
+    reason: >-
+      "without constraints" appears in a methodology document describing
+      unconstrained-generation as a research technique for paper drafting.
+
+  - id: "MP3"
+    path: "skills/*.md"
+    reason: >-
+      Matches "swap memory" (Linux swap configuration in axolotl training docs)
+      and "reset context" (an agent context-budget practice), neither of which
+      manipulates persistent memory.
+
+  - id: "MP2"
+    path: "skills/*.md"
+    reason: >-
+      "Context window stuffing" matches docs that discuss context-window sizing
+      and budgeting as a performance topic.
+
+  - id: "RA1"
+    path: "skills/*.md"
+    reason: >-
+      The evolver and self-improving-agent skills document a human-reviewed
+      skill-authoring loop. Their SKILL.md files state hard boundaries
+      (no core-file modification, no security-control bypass) and require
+      approval for changes.
+
+  - id: "P1"
+    path: "skills/agent-platform/tooling/self-improving-agent-custom/SKILL.md"
+    reason: >-
+      "bypass security" is matched inside the skill's own "Hard Boundaries
+      (Never Cross)" list — it is a prohibition, and the inverse of the
+      behavior the rule looks for.
+
+  - id: "RA2"
+    path: "skills/*.md"
+    reason: >-
+      "Session persistence" matches documentation of shell session state, tmux,
+      and agent session resumption — user-facing features, not covert
+      persistence mechanisms.
+
+  - id: "AS3"
+    path: "skills/*.md"
+    reason: >-
+      Skill enumeration matches CATALOG-style listings and skills that
+      legitimately help a user discover which skills are installed.
+
+  - id: "EA1"
+    path: "skills/*.md"
+    reason: >-
+      Matches a YAML `tool: *` placeholder in an incident-response playbook
+      template, where the wildcard is prose scaffolding to be filled in.
+
+  - id: "EA2"
+    path: "skills/*.md"
+    reason: >-
+      Autonomous-decision phrasing appears in docs describing agent workflows
+      and their approval gates. Skills that can act destructively route through
+      the agent's approval prompt.
+
+  - id: "EA3"
+    path: "skills/*"
+    reason: >-
+      Scope creep is matched by broad capability descriptions and bundled
+      LICENSE files. This repository is by design a multi-domain bundle; each
+      individual skill's scope is bounded by its own SKILL.md.
+
+  - id: "EA4"
+    path: "skills/operations/openshift-llm-deploy/scripts/diagnose-deployment.sh"
+    reason: >-
+      "retry indefinitely" is descriptive text in a diagnostic message about a
+      CrashLoopBackOff pod's restart policy. The script's own polling loop is
+      bounded by an explicit deadline.
+
+  - id: "OH1"
+    path: "skills/agent-platform/tooling/lm-evaluation-harness/*"
+    reason: >-
+      lm-evaluation-harness documents evaluating model-generated code, which is
+      the benchmark's purpose. The docs direct users to sandbox execution.
+
+  # --- Supply chain ----------------------------------------------------------
+  - id: "RP1"
+    path: "skills/*.md"
+    reason: >-
+      Unpinned references are `npx`/`uvx`/`brew` invocations in human-facing
+      install instructions for third-party CLIs. Every `pip install git+…` in
+      this bundle's own guidance is pinned to a tag or commit SHA.
+
+  - id: "SC2"
+    path: "skills/*.md"
+    message: "*curl*"
+    reason: >-
+      Remaining matches are curl calls against documented vendor REST APIs
+      (Linear GraphQL, Airtable) that return data, not scripts. The two cases
+      that piped a downloaded script into a shell were fixed in the source.
+
+  - id: "YR1"
+    path: "skills/agent-platform/tooling/unsloth/references/*"
+    reason: >-
+      llms-txt.md and llms-full.md are verbatim mirrors of upstream Unsloth
+      documentation, preserved for provenance under SOURCE_NOTICES.md. They are
+      reference text the agent reads, not instructions this bundle endorses.
+
+  # --- Executable components: individually reviewed --------------------------
+  # Each rule below names a specific file. These were triaged one by one rather
+  # than covered by a path glob, because they are code the agent runs.
+
+  - id: "PE3"
+    path: "skills/integrations/*/scripts/*.py"
+    reason: >-
+      These scripts read the operator-provisioned Hermes .env to obtain their
+      own API token. Each loader is now restricted to an explicit ENV_KEYS
+      allowlist (SLACK_BOT_TOKEN, GITHUB_TOKEN), so unrelated credentials in the
+      shared .env are never read into the process. Tokens are sent only to their
+      own vendor API and are never logged.
+
+  - id: "E2"
+    path: "skills/integrations/*/scripts/*.py"
+    reason: >-
+      Reading the skill's own token from the environment is the documented
+      credential-passing mechanism. See the PE3 rule above for the allowlist
+      hardening applied to these same files.
+
+  - id: "PE3"
+    path: "skills/agent-platform/tooling/google-workspace/scripts/*.py"
+    reason: >-
+      "access token" and "secret.json" refer to the Google OAuth client
+      configuration the operator installs. Tokens are cached under HERMES_HOME
+      and forwarded to the gws subprocess through an explicit environment
+      allowlist rather than a full os.environ copy.
+
+  - id: "E2"
+    path: "skills/agent-platform/tooling/google-workspace/scripts/*.py"
+    reason: >-
+      os.environ reads are scoped by the ENV_ALLOWLIST / passthrough tuples
+      added to google_api.py and gws_bridge.py.
+
+  - id: "AST4"
+    path: "skills/agent-platform/tooling/google-workspace/scripts/*.py"
+    reason: >-
+      All three subprocess calls use a list argv with shell=False, so arguments
+      are never re-parsed by a shell and cannot inject additional commands.
+      Executables are fixed strings (sys.executable, "gws"), not user input.
+
+  - id: "PE3"
+    path: "skills/operations/ci-cd/argocd/References/command-tools/ArgoCdCli.ts"
+    reason: >-
+      KUBECONFIG references document the standard kubectl/ArgoCD configuration
+      path that the operator already controls. The file is reference material
+      describing CLI flags.
+
+  - id: "TM1"
+    path: "skills/operations/ci-cd/argocd/scripts/argocd-api.sh"
+    reason: >-
+      DELETE calls are the ArgoCD REST API operations this client exists to
+      expose (delete application, terminate operation, remove repository). They
+      act on the caller's own ArgoCD instance under their own auth token, and
+      run through the agent's approval prompt.
+
+  - id: "RA2"
+    path: "skills/operations/ci-cd/argocd/References/command-tools/ArgoCdCli.ts"
+    reason: >-
+      Matches ApplicationSet create/delete text in a CLI command reference
+      table, not a persistence mechanism.
+
+  - id: "TM1"
+    path: "skills/operations/docker/container-fundamentals/docker/scripts/image-audit.sh"
+    reason: >-
+      "rm -rf /" is matched inside a grep PATTERN STRING that searches Docker
+      image history for "rm -rf /var/lib/apt" cleanup layers. The script is
+      read-only: it inspects image metadata and prints suggestions. It never
+      executes the matched text.
+
+  - id: "TM2"
+    path: "skills/operations/openshift-llm-deploy/scripts/verify-openai-endpoint.sh"
+    reason: >-
+      The flagged "; rm -" is a trap handler that removes the script's own
+      mktemp -d working directory on EXIT/HUP/INT/TERM. The path is a
+      script-created temp dir, not user input.
+
+  - id: "E1"
+    path: "skills/operations/*/scripts/*.sh"
+    reason: >-
+      curl calls target the operator's own cluster endpoints supplied as
+      arguments ($ARGOCD_SERVER, a localhost port-forward) plus api.github.com
+      for release-tag lookup. No hardcoded third-party sink.
+
+  - id: "E2"
+    path: "skills/operations/openshift-llm-deploy/templates/model-download-job.yaml"
+    reason: >-
+      The Job template reads the names of Kubernetes Secrets from the
+      environment (HF_TOKEN_SECRET_NAME) so the operator can point it at their
+      own Secret. It reads secret NAMES, not secret values.
+
+  - id: "P6"
+    path: "skills/operations/observability/prometheus/scripts/prom_health.py"
+    reason: >-
+      "display rules" refers to printing Prometheus alerting/recording rules
+      fetched from the caller's own Prometheus API.
+
+  - id: "RP1"
+    path: "skills/*/scripts/*.sh"
+    reason: >-
+      Unpinned references are host tools the operator has already installed
+      (docker, python3, kubectl) invoked from PATH, which is how a shell script
+      is expected to call them.
+
+  - id: "RP1"
+    path: "skills/operations/kubernetes-skill/.github/workflows/*.yml"
+    reason: >-
+      GitHub Actions reference in the vendored kubernetes-skill docs-site
+      workflow. That workflow builds the upstream project's documentation and
+      does not run as part of this bundle.
+
+  - id: "AST4"
+    path: "skills/agent-platform/tooling/google-workspace/scripts/setup.py"
+    reason: >-
+      subprocess.check_call runs "sys.executable -m pip install" during
+      operator-initiated setup, with a fixed argument list and shell=False.
+
+  # --- YARA rules matching benign text ---------------------------------------
+  - id: "YR1"
+    message: "*pip install git+https*"
+    reason: >-
+      The YARA rule matches the literal string "pip install git+https://"
+      regardless of whether a revision follows. Every such install line in this
+      bundle is now pinned to a release tag or a full commit SHA (dspy v2.4.12,
+      audiocraft v1.3.0, segment-anything dca509fe, SAM2 2b90b9f5, CLIP
+      d05afc43), which is the remediation this rule exists to prompt.
+
+  - id: "YR1"
+    path: "skills/agent-platform/autonomous-ai-agents/hermes-agent/SKILL.md"
+    reason: >-
+      Matches the section that DOCUMENTS the approval prompt gating destructive
+      commands, listing "rm -rf" and "git reset --hard" as examples of what
+      Hermes prompts on. This is the safety control being described.
+
+  - id: "YR1"
+    path: "skills/operations/shell/prompt-configuration/SKILL.md"
+    reason: >-
+      Zsh prompt-configuration guide. The rule's strings match scattered prose
+      about resetting key bindings and shell history across a long document;
+      the file contains no destructive command the agent is told to run.
+
+  - id: "YR4"
+    path: "skills/agent-platform/tooling/ontology/SKILL.md"
+    reason: >-
+      "disable constraints" refers to relaxing ontology/schema validation
+      constraints in a knowledge-graph model, not to disabling safety controls.
+
+  - id: "YR4"
+    path: "skills/agent-platform/tooling/stable-diffusion/*"
+    reason: >-
+      Rule triggered by repeated occurrences of the word "model" in an
+      image-generation troubleshooting guide.
+
+  - id: "YR4"
+    path: "skills/workflows/creative/baoyu-comic/*"
+    reason: >-
+      Rule triggered by the word "Fierce" in comic art-direction tone and style
+      presets.
+
+  - id: "P2"
+    path: "skills/agent-platform/tooling/popular-web-designs/SKILL.md"
+    reason: >-
+      An HTML comment instructing the human author to paste their Google Fonts
+      link into the template.
+
+  - id: "PE3"
+    path: "skills/operations/kubernetes/fundamentals/k8s/examples/helm-chart/templates/*.yaml"
+    reason: >-
+      Matches the literal text ".env" inside the Helm template expression
+      `{{- with .Values.env }}`, which renders the chart's env block. There is
+      no dotenv file involved.
+
+  # --- Repository metadata ---------------------------------------------------
+  - id: "EA3"
+    path: "LICENSE"
+    reason: "Apache-2.0 license text; 'not limited to' is standard license wording."
+
+  - id: "EA2"
+    path: "SOURCE_NOTICES.md"
+    reason: >-
+      Provenance record; "automatically execute" appears in a bundled upstream
+      license/notice excerpt.
+
+  - id: "SC2"
+    path: "SECURITY.md"
+    reason: >-
+      This policy document describes the piped-installer pattern in order to
+      prohibit it.
+
+  # --- Vendored third-party skill --------------------------------------------
+  - id: "SC1"
+    path: "skills/operations/kubernetes-skill/docs/package.json"
+    reason: >-
+      Caret ranges in the vendored kubernetes-skill documentation site's
+      devDependencies (honkit, gitbook-plugin-search-pro). This package.json
+      builds docs only and ships no runtime code into the agent.

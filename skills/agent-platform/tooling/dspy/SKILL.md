@@ -32,7 +32,7 @@ Use DSPy when you need to:
 pip install dspy
 
 # Latest development version
-pip install git+https://github.com/stanfordnlp/dspy.git
+pip install git+https://github.com/stanfordnlp/dspy.git@v2.4.12
 
 # With specific LM providers
 pip install dspy[openai]        # OpenAI

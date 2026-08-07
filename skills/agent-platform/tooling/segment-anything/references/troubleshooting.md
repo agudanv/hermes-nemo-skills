@@ -28,7 +28,7 @@ sam.to("cuda")  # Explicitly move to GPU
 **Solutions**:
 ```bash
 # Install from GitHub
-pip install git+https://github.com/facebookresearch/segment-anything.git
+pip install git+https://github.com/facebookresearch/segment-anything.git@dca509fe793f601edb92606367a655c15ac00fdf
 
 # Or clone and install
 git clone https://github.com/facebookresearch/segment-anything.git

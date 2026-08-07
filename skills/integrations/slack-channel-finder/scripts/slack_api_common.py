@@ -31,8 +31,14 @@ def _read_env_value(env_file: Path, key: str) -> str:
     return ""
 
 
+# This skill talks only to the Slack API. Loading every key from the shared
+# Hermes .env would pull unrelated credentials (GitHub, cloud, database) into
+# this process for no reason, so the loader is restricted to the keys below.
+ENV_KEYS = ("SLACK_BOT_TOKEN",)
+
+
 def load_env_defaults() -> None:
-    """Load Hermes-style .env files into os.environ if values are missing."""
+    """Load this skill's Hermes .env keys into os.environ if values are missing."""
     for env_file in _candidate_env_files():
         if not env_file.is_file():
             continue
@@ -41,6 +47,8 @@ def load_env_defaults() -> None:
             if not line or line.startswith("#") or "=" not in line:
                 continue
             key, value = line.split("=", 1)
+            if key not in ENV_KEYS:
+                continue
             os.environ.setdefault(key, value)
 
 

@@ -134,6 +134,10 @@ spec:
       - name: node-problem-detector
         image: registry.k8s.io/node-problem-detector/node-problem-detector:v0.8.14
         securityContext:
+          # node-problem-detector reads host kernel logs (/dev/kmsg), which
+          # requires privileged mode. Do not copy this block into workloads
+          # that do not need host-level access; prefer the least-privilege
+          # securityContext shown in the k8s-security skill.
           privileged: true
         env:
         - name: NODE_NAME

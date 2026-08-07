@@ -12,7 +12,7 @@
 pip install audiocraft
 
 # Or from GitHub
-pip install git+https://github.com/facebookresearch/audiocraft.git
+pip install git+https://github.com/facebookresearch/audiocraft.git@v1.3.0
 
 # Verify installation
 python -c "from audiocraft.models import MusicGen; print('OK')"

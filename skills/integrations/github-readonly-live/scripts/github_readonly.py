@@ -63,6 +63,13 @@ def optional_positive_int(value: str) -> int:
     return parsed
 
 
+# This skill is read-only against the GitHub API and needs exactly one secret.
+# Loading every key from the shared Hermes .env would pull unrelated
+# credentials (Slack, cloud, database) into this process for no reason, so the
+# loader is restricted to the keys named here.
+ENV_KEYS = ("GITHUB_TOKEN",)
+
+
 def load_env_defaults() -> None:
     hermes_home = Path(os.environ.get("HERMES_HOME", "/sandbox/.hermes-data"))
     for env_file in (hermes_home / ".env", Path("/sandbox/.hermes-data/.env"), Path("/sandbox/.hermes/.env")):
@@ -73,6 +80,8 @@ def load_env_defaults() -> None:
             if not line or line.startswith("#") or "=" not in line:
                 continue
             key, value = line.split("=", 1)
+            if key not in ENV_KEYS:
+                continue
             if not os.environ.get(key):
                 os.environ[key] = value.strip()
 

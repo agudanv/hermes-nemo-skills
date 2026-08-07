@@ -1,0 +1,48 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+name: SkillSpector
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    name: Agent-skill vulnerability scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install SkillSpector
+        run: pip install "git+https://github.com/NVIDIA/skillspector.git"
+
+      - name: Validate skill metadata
+        run: bash scripts/validate-skills.sh
+
+      # Fails when a NEW finding pushes the risk score above threshold.
+      # Reviewed false positives are justified in .skillspector-baseline.yaml.
+      - name: Scan skills
+        run: |
+          skillspector scan . \
+            --no-llm \
+            --baseline .skillspector-baseline.yaml \
+            --format sarif \
+            --output skillspector.sarif
+
+      - name: Upload SARIF report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: skillspector-sarif
+          path: skillspector.sarif

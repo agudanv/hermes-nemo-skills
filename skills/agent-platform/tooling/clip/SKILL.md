@@ -41,7 +41,7 @@ OpenAI's model that understands images from natural language.
 ### Installation
 
 ```bash
-pip install git+https://github.com/openai/CLIP.git
+pip install git+https://github.com/openai/CLIP.git@d05afc436d78f1c48dc0dbf8e5980a9d471f35f6
 pip install torch torchvision ftfy regex tqdm
 ```
 

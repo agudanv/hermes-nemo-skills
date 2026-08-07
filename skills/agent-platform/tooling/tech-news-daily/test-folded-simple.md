@@ -1,4 +1,4 @@
-﻿# Tech News 路 2026-04-02
+# Tech News 路 2026-04-02
 
 > Folded format | Click to expand
 

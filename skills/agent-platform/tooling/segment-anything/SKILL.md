@@ -45,7 +45,7 @@ Comprehensive guide to using Meta AI's Segment Anything Model for zero-shot imag
 
 ```bash
 # From GitHub
-pip install git+https://github.com/facebookresearch/segment-anything.git
+pip install git+https://github.com/facebookresearch/segment-anything.git@dca509fe793f601edb92606367a655c15ac00fdf
 
 # Optional dependencies
 pip install opencv-python pycocotools matplotlib

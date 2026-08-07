@@ -215,8 +215,11 @@ spec:
 # macOS
 brew install fluxcd/tap/flux
 
-# Linux
-curl -s https://fluxcd.io/install.sh | sudo bash
+# Linux — download and review the installer before running it.
+# Do not pipe a remote script into a root shell.
+curl -fsSL https://fluxcd.io/install.sh -o /tmp/flux-install.sh
+less /tmp/flux-install.sh          # review
+sudo env FLUX_VERSION=2.4.0 bash /tmp/flux-install.sh
 
 # Verify installation
 flux --version

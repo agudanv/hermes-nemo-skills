@@ -78,10 +78,18 @@ def main():
         sys.exit(1)
 
     access_token = get_valid_token()
-    env = os.environ.copy()
+
+    # Forward only what gws needs. Copying the whole environment would hand the
+    # Google Workspace CLI every other credential present in the agent session.
+    passthrough = (
+        "PATH", "HOME", "USER", "LANG", "LC_ALL", "TMPDIR", "HERMES_HOME",
+        "HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY",
+        "http_proxy", "https_proxy", "no_proxy",
+    )
+    env = {k: os.environ[k] for k in passthrough if k in os.environ}
     env["GOOGLE_WORKSPACE_CLI_TOKEN"] = access_token
 
-    result = subprocess.run(["gws"] + sys.argv[1:], env=env)
+    result = subprocess.run(["gws"] + sys.argv[1:], shell=False, env=env)
     sys.exit(result.returncode)
 
 

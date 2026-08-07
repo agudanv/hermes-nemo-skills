@@ -86,7 +86,7 @@ When this skill is loaded in your agent's context:
 
 **v1.0.0** - Initial release (January 2025)
 
-## 👨‍💻 Maintained By
+## 👨💻 Maintained By
 
 Orchestra Research
 For questions or improvements, see https://orchestra.com
