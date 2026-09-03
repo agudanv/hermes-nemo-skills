@@ -65,6 +65,5 @@ Before opening a PR:
 ## Reporting a vulnerability
 
 Report suspected vulnerabilities in this bundle — a skill that leaks credentials,
-escalates privilege, or carries hidden instructions — to the NVIDIA PSIRT process at
-<https://www.nvidia.com/en-us/security/>. Please do not open a public issue for a
+escalates privilege, or carries hidden instructions — open a public issue for a
 security report.
