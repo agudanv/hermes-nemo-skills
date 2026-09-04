@@ -4,7 +4,7 @@ description: Configure and validate a restricted Slack agent-to-agent room for N
 license: Apache-2.0
 ---
 
-<!-- SPDX-FileCopyrightText: Copyright (c) 2026 PicoNVIDIA -->
+<!-- SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
 # Connect NemoClaw Agents
