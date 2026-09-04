@@ -314,5 +314,3 @@ Full list: 99 languages total
 - **Model Card**: https://github.com/openai/whisper/blob/main/model-card.md
 - **Colab**: Available in repo
 - **License**: MIT
-
-

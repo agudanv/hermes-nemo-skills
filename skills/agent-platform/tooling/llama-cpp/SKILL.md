@@ -253,5 +253,3 @@ cat prompts.txt | ./llama-cli \
 - **GitHub**: https://github.com/ggerganov/llama.cpp
 - **Models**: https://huggingface.co/models?library=gguf
 - **Discord**: https://discord.gg/llama-cpp
-
-

@@ -262,4 +262,3 @@ user can ask for more.
 ```bash
 /usr/bin/python3 .../describe_slack_channel.py --channel-id C0ASZUN3L5D --replies --resolve-users
 ```
-
