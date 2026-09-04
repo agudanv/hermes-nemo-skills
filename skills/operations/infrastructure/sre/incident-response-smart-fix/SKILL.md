@@ -1,41 +1,113 @@
 ---
 name: incident-response-smart-fix
-description: "[Extended thinking: This workflow implements a sophisticated debugging and resolution pipeline that leverages AI-assisted debugging tools and observability platforms to systematically diagnose and res"
-risk: unknown
-source: community
-date_added: "2026-02-27"
-license: CC-BY-4.0
+description: "Hypothesis-driven remediation pipeline for live incidents: capture a baseline, observe evidence across metrics, logs, and traces, form falsifiable root-cause hypotheses, run minimum-blast-radius experiments, and verify every fix against the baseline before fleet rollout on Kubernetes/OpenShift. Use when the user asks for automated debugging, self-healing, a root-cause pipeline, hypothesis-driven remediation, or evidence-backed fixes instead of guess-and-restart patching."
+license: Apache-2.0
 ---
 
-<!-- SPDX-FileCopyrightText: 2026 Antigravity User -->
-<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+<!-- SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
 
-# Intelligent Issue Resolution with Multi-Agent Orchestration
+# Incident Response: Smart Fix
 
-[Extended thinking: This workflow implements a sophisticated debugging and resolution pipeline that leverages AI-assisted debugging tools and observability platforms to systematically diagnose and resolve production issues. The intelligent debugging strategy combines automated root cause analysis with human expertise, using modern 2024/2025 practices including AI code assistants (GitHub Copilot, Claude Code), observability platforms (Sentry, DataDog, OpenTelemetry), git bisect automation for regression tracking, and production-safe debugging techniques like distributed tracing and structured logging. The process follows a rigorous four-phase approach: (1) Issue Analysis Phase - error-detective and debugger agents analyze error traces, logs, reproduction steps, and observability data to understand the full context of the failure including upstream/downstream impacts, (2) Root Cause Investigation Phase - debugger and code-reviewer agents perform deep code analysis, automated git bisect to identify introducing commit, dependency compatibility checks, and state inspection to isolate the exact failure mechanism, (3) Fix Implementation Phase - domain-specific agents (python-pro, typescript-pro, rust-expert, etc.) implement minimal fixes with comprehensive test coverage including unit, integration, and edge case tests while following production-safe practices, (4) Verification Phase - test-automator and performance-engineer agents run regression suites, performance benchmarks, security scans, and verify no new issues are introduced. Complex issues spanning multiple systems require orchestrated coordination between specialist agents (database-optimizer → performance-engineer → devops-troubleshooter) with explicit context passing and state sharing. The workflow emphasizes understanding root causes over treating symptoms, implementing lasting architectural improvements, automating detection through enhanced monitoring and alerting, and preventing future occurrences through type system enhancements, static analysis rules, and improved error handling patterns. Success is measured not just by issue resolution but by reduced mean time to recovery (MTTR), prevention of similar issues, and improved system resilience.]
+## Purpose
 
-## Use this skill when
+Evidence-driven remediation loop for an agent operating against live Kubernetes/OpenShift systems. The skill converts an unexplained symptom into a verified fix through four disciplined stages: observe, hypothesize, experiment, verify. Every hypothesis must be falsifiable, every experiment must be smaller than its guardrail, and every fix must beat a baseline captured before any change was made.
 
-- Working on intelligent issue resolution with multi-agent orchestration tasks or workflows
-- Needing guidance, best practices, or checklists for intelligent issue resolution with multi-agent orchestration
+## When to Use
 
-## Do not use this skill when
+- A system is degraded (error rate, latency tail, crash loops, OOMKills) and the cause is unknown or contested.
+- A recent change (deploy, config edit, scaling or node event) is suspected but unproven.
+- Multiple plausible causes must be discriminated cheaply before committing to one.
+- The user wants automated debugging, self-healing, a root-cause pipeline, or hypothesis-driven remediation with guardrails.
 
-- The task is unrelated to intelligent issue resolution with multi-agent orchestration
-- You need a different domain or tool outside this scope
+Hand-off points:
 
-## Instructions
+- Impact is customer-visible and growing; mitigation now matters more than root cause -> `incident-responder`.
+- A full incident framework, severity levels, and role assignments are needed -> `incident-response`.
+- Incident is contained and deep causal analysis is next -> `failure-analysis`.
+- The verified fix should be persisted as an executable runbook -> `runbook-creator`.
 
-- Clarify goals, constraints, and required inputs.
-- Apply relevant best practices and validate outcomes.
-- Provide actionable steps and verification.
-- If detailed examples are required, open `resources/implementation-playbook.md`.
+## Core Loop
 
-## Resources
+The loop exits only through VERIFIED (fix held through its watch window) or ESCALATE (impact exceeded a guardrail). A fix applied without a captured baseline is an incident amplifier, not a fix.
 
-- `resources/implementation-playbook.md` for detailed patterns and examples.
+```text
+        +----------+
+        |          |   wrong outcome: rollback, refine hypothesis
+        v          |
+     OBSERVE       |
+        |          |
+        v          |
+  HYPOTHESIZE <----+   statement + prediction:
+        |              "if H is true, metric M must show W by time T"
+        |              not falsifiable -> rewrite before testing
+        v
+   EXPERIMENT        one change only, minimum blast radius,
+        |            rollback armed before apply
+        v
+     VERIFY          hold through watch window, watch adjacent metrics
+        |
+        +-- stable, no adjacent regressions -> DONE: promote fix, write runbook
+        +-- watch-window breach or regression -> ESCALATE to `incident-responder`
+```
 
-## Limitations
-- Use this skill only when the task clearly matches the scope described above.
-- Do not treat the output as a substitute for environment-specific validation, testing, or expert review.
-- Stop and ask for clarification if required inputs, permissions, safety boundaries, or success criteria are missing.
+Stage discipline:
+
+- **Observe.** Snapshot the baseline before touching anything. Quantify the symptom: magnitude, start time, affected population. List every change event in the window. Distinguish what changed from what is merely coincident in time.
+- **Hypothesize.** One cause per hypothesis, stated as `H: <cause> produces <effect>`. Attach a prediction that evidence can falsify: a metric, log pattern, or trace shape that must (or must not) appear. No prediction, no test.
+- **Experiment.** Change exactly one variable. Choose the smallest arena that yields signal (staging namespace, one canary pod, one cordoned node). Precompute and re-verify the rollback command before applying.
+- **Verify.** Compare against the baseline with numeric acceptance criteria. Watch the adjacents: the metrics you did not set out to improve. Hold the fix through a watch window scaled to incident severity before fleet promotion.
+
+## Evidence Sources
+
+| Signal | Source | Skill |
+| --- | --- | --- |
+| Counters, gauges, histograms, SLOs | Prometheus | `observability/prometheus` |
+| Error bursts, stack traces, log patterns | Loki | `observability/loki` |
+| Distributed latency attribution, spans | OpenTelemetry | `observability/opentelemetry` |
+| Dashboard context, historical baselines | Grafana | `observability/grafana` |
+
+Query patterns per signal class (metric spikes, log error bursts, p99 tails, crash loops, OOMKills) are in `resources/implementation-playbook.md`, with hypothesis templates, experiment design, and the pitfall catalog.
+
+## Guardrails
+
+1. **No fix without a captured baseline.** Queries and outputs are saved to the incident log before the first mutation. Without a before, there is no after.
+2. **Staging first** when a staging environment exists; production experiments must take the canary path.
+3. **Canary before fleet.** Ramp 1 pod -> 10% -> 50% -> 100% of service capacity, holding each step for at least two complete SLO evaluation windows. Never jump straight to fleet.
+4. **Rollback plan is mandatory and armed.** Exact revert commands written, reviewed, and executable by a second party before the experiment applies.
+5. **Blast-radius budget.** Exceeding any budget escalates rather than improvising.
+
+| Change class | First arena | Max blast radius without escalation |
+| --- | --- | --- |
+| Code hotfix | staging, then canary pod | 10% of service traffic |
+| Config or env var change | staging or one labeled pod | one deployment |
+| Resource limit change | canary pod | one deployment |
+| Node-level (daemonset, kernel) | one cordoned node | one node |
+| Cluster-wide (RBAC, admission, mesh) | never experiment in-band | requires `incident-responder` |
+
+Beyond the budget table: **irreversible or customer-facing mutations require explicit human approval** at the point of risk. The loop stops and asks.
+
+## Escalate to `incident-responder` When
+
+- Customer-facing impact grows while the loop is still in OBSERVE or HYPOTHESIZE.
+- Two full loop iterations produce no discriminating evidence.
+- Rollback was executed and the system is still degraded: the change was not the cause, or not the only cause.
+- The candidate fix requires a blast radius beyond the budget table above.
+- The incident meets SEV1/SEV2 criteria; mitigation takes priority over root cause.
+
+## Artifacts
+
+Two records travel with every smart-fix loop; templates, queries, and a worked example are in `resources/implementation-playbook.md`:
+
+- **Hypothesis register** -- every hypothesis, its prediction, and its falsifying observation, including the rejected ones.
+- **Experiment record** -- change applied, arena, rollback command, predicted versus observed outcome, and promotion decision.
+
+## Cross-References
+
+- `incident-response` -- overall incident workflow and severity framework
+- `incident-responder` -- mitigation-first operations during an active incident
+- `failure-analysis` -- deep causal analysis after containment
+- `runbook-creator` -- persist the verified fix as an executable runbook
+- `observability` -- evidence collection (prometheus, grafana, loki, opentelemetry sub-guides)
+- `kubernetes-troubleshooting` -- platform-level triage when the cause is the cluster, not the workload
+- `production-readiness` -- post-fix readiness review of the change

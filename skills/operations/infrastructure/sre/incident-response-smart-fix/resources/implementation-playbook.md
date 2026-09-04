@@ -1,841 +1,467 @@
-<!-- SPDX-FileCopyrightText: 2026 Antigravity User -->
-<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+<!-- SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
 
-# Intelligent Issue Resolution with Multi-Agent Orchestration Implementation Playbook
+# Smart Fix: Implementation Playbook
 
-This file contains detailed patterns, checklists, and code samples referenced by the skill.
+Operational companion to the `incident-response-smart-fix` skill: concrete commands, query patterns, and record templates for the observe -> hypothesize -> experiment -> verify loop on Kubernetes/OpenShift. Assumes the agent runs inside a Linux pod with cluster access; no macOS tooling, no pipe-to-shell installers.
 
-# Intelligent Issue Resolution with Multi-Agent Orchestration
+## 1. Tooling and Environment
 
-[Extended thinking: This workflow implements a sophisticated debugging and resolution pipeline that leverages AI-assisted debugging tools and observability platforms to systematically diagnose and resolve production issues. The intelligent debugging strategy combines automated root cause analysis with human expertise, using modern 2024/2025 practices including AI code assistants (GitHub Copilot, Claude Code), observability platforms (Sentry, DataDog, OpenTelemetry), git bisect automation for regression tracking, and production-safe debugging techniques like distributed tracing and structured logging. The process follows a rigorous four-phase approach: (1) Issue Analysis Phase - error-detective and debugger agents analyze error traces, logs, reproduction steps, and observability data to understand the full context of the failure including upstream/downstream impacts, (2) Root Cause Investigation Phase - debugger and code-reviewer agents perform deep code analysis, automated git bisect to identify introducing commit, dependency compatibility checks, and state inspection to isolate the exact failure mechanism, (3) Fix Implementation Phase - domain-specific agents (python-pro, typescript-pro, rust-expert, etc.) implement minimal fixes with comprehensive test coverage including unit, integration, and edge case tests while following production-safe practices, (4) Verification Phase - test-automator and performance-engineer agents run regression suites, performance benchmarks, security scans, and verify no new issues are introduced. Complex issues spanning multiple systems require orchestrated coordination between specialist agents (database-optimizer → performance-engineer → devops-troubleshooter) with explicit context passing and state sharing. The workflow emphasizes understanding root causes over treating symptoms, implementing lasting architectural improvements, automating detection through enhanced monitoring and alerting, and preventing future occurrences through type system enhancements, static analysis rules, and improved error handling patterns. Success is measured not just by issue resolution but by reduced mean time to recovery (MTTR), prevention of similar issues, and improved system resilience.]
+| Tool | Purpose | Notes |
+| --- | --- | --- |
+| `kubectl` | Cluster state, logs, events, exec, debug | On OpenShift substitute `oc` (see `openshift-operations`) |
+| `curl` + `jq` | Prometheus/Loki HTTP APIs | Always available; preferred over extra CLIs |
+| `logcli` | Optional: interactive Loki queries | Pinned binary install below |
 
-## Phase 1: Issue Analysis - Error Detection and Context Gathering
+Environment variables referenced by name only, never values: `KUBECONFIG`, `PROM_URL`, `LOKI_URL`, `ARTIFACT_DIR`.
 
-Use Task tool with subagent_type="error-debugging::error-detective" followed by subagent_type="error-debugging::debugger":
-
-**First: Error-Detective Analysis**
-
-**Prompt:**
-```
-Analyze error traces, logs, and observability data for: $ARGUMENTS
-
-Deliverables:
-1. Error signature analysis: exception type, message patterns, frequency, first occurrence
-2. Stack trace deep dive: failure location, call chain, involved components
-3. Reproduction steps: minimal test case, environment requirements, data fixtures needed
-4. Observability context:
-   - Sentry/DataDog error groups and trends
-   - Distributed traces showing request flow (OpenTelemetry/Jaeger)
-   - Structured logs (JSON logs with correlation IDs)
-   - APM metrics: latency spikes, error rates, resource usage
-5. User impact assessment: affected user segments, error rate, business metrics impact
-6. Timeline analysis: when did it start, correlation with deployments/config changes
-7. Related symptoms: similar errors, cascading failures, upstream/downstream impacts
-
-Modern debugging techniques to employ:
-- AI-assisted log analysis (pattern detection, anomaly identification)
-- Distributed trace correlation across microservices
-- Production-safe debugging (no code changes, use observability data)
-- Error fingerprinting for deduplication and tracking
+```bash
+export ARTIFACT_DIR="${ARTIFACT_DIR:-/tmp/smartfix-$(date -u +%Y%m%dT%H%M%SZ)}"
+mkdir -p "$ARTIFACT_DIR"
 ```
 
-**Expected output:**
-```
-ERROR_SIGNATURE: {exception type + key message pattern}
-FREQUENCY: {count, rate, trend}
-FIRST_SEEN: {timestamp or git commit}
-STACK_TRACE: {formatted trace with key frames highlighted}
-REPRODUCTION: {minimal steps + sample data}
-OBSERVABILITY_LINKS: [Sentry URL, DataDog dashboard, trace IDs]
-USER_IMPACT: {affected users, severity, business impact}
-TIMELINE: {when started, correlation with changes}
-RELATED_ISSUES: [similar errors, cascading failures]
-```
+If `logcli` is required, install a pinned release binary with a checksum (never pipe to a shell):
 
-**Second: Debugger Root Cause Identification**
-
-**Prompt:**
-```
-Perform root cause investigation using error-detective output:
-
-Context from Error-Detective:
-- Error signature: {ERROR_SIGNATURE}
-- Stack trace: {STACK_TRACE}
-- Reproduction: {REPRODUCTION}
-- Observability: {OBSERVABILITY_LINKS}
-
-Deliverables:
-1. Root cause hypothesis with supporting evidence
-2. Code-level analysis: variable states, control flow, timing issues
-3. Git bisect analysis: identify introducing commit (automate with git bisect run)
-4. Dependency analysis: version conflicts, API changes, configuration drift
-5. State inspection: database state, cache state, external API responses
-6. Failure mechanism: why does the code fail under these specific conditions
-7. Fix strategy options with tradeoffs (quick fix vs proper fix)
-
-Context needed for next phase:
-- Exact file paths and line numbers requiring changes
-- Data structures or API contracts affected
-- Dependencies that may need updates
-- Test scenarios to verify the fix
-- Performance characteristics to maintain
+```bash
+LOGCLI_VERSION="3.4.2"                        # pin per environment
+LOGCLI_SHA256="<sha256-of-release-binary>"    # record the expected digest
+curl -fsSLo /tmp/logcli.zip \
+  "https://github.com/grafana/loki/releases/download/v${LOGCLI_VERSION}/logcli-${LOGCLI_VERSION}-linux-amd64.zip"
+unzip -q -o /tmp/logcli.zip -d /tmp
+install -m 0755 "/tmp/logcli-${LOGCLI_VERSION}-linux-amd64" /usr/local/bin/logcli
+echo "${LOGCLI_SHA256}  /usr/local/bin/logcli" | sha256sum -c -
 ```
 
-**Expected output:**
-```
-ROOT_CAUSE: {technical explanation with evidence}
-INTRODUCING_COMMIT: {git SHA + summary if found via bisect}
-AFFECTED_FILES: [file paths with specific line numbers]
-FAILURE_MECHANISM: {why it fails - race condition, null check, type mismatch, etc}
-DEPENDENCIES: [related systems, libraries, external APIs]
-FIX_STRATEGY: {recommended approach with reasoning}
-QUICK_FIX_OPTION: {temporary mitigation if applicable}
-PROPER_FIX_OPTION: {long-term solution}
-TESTING_REQUIREMENTS: [scenarios that must be covered]
-```
+Every recipe here works over the Loki HTTP API (`${LOKI_URL}/loki/api/v1/query_range`, same `curl -sG` shape as 2.1) without `logcli`.
 
-## Phase 2: Root Cause Investigation - Deep Code Analysis
+## 2. Loop Artifacts
 
-Use Task tool with subagent_type="error-debugging::debugger" and subagent_type="comprehensive-review::code-reviewer" for systematic investigation:
+### 2.1 Baseline Capture (mandatory, before any mutation)
 
-**First: Debugger Code Analysis**
+Snapshot cluster state and key metrics into `${ARTIFACT_DIR}`; every later comparison runs against this.
 
-**Prompt:**
-```
-Perform deep code analysis and bisect investigation:
-
-Context from Phase 1:
-- Root cause: {ROOT_CAUSE}
-- Affected files: {AFFECTED_FILES}
-- Failure mechanism: {FAILURE_MECHANISM}
-- Introducing commit: {INTRODUCING_COMMIT}
-
-Deliverables:
-1. Code path analysis: trace execution from entry point to failure
-2. Variable state tracking: values at key decision points
-3. Control flow analysis: branches taken, loops, async operations
-4. Git bisect automation: create bisect script to identify exact breaking commit
-   ```bash
-   git bisect start HEAD v1.2.3
-   git bisect run ./test_reproduction.sh
-   ```
-5. Dependency compatibility matrix: version combinations that work/fail
-6. Configuration analysis: environment variables, feature flags, deployment configs
-7. Timing and race condition analysis: async operations, event ordering, locks
-8. Memory and resource analysis: leaks, exhaustion, contention
-
-Modern investigation techniques:
-- AI-assisted code explanation (Claude/Copilot to understand complex logic)
-- Automated git bisect with reproduction test
-- Dependency graph analysis (npm ls, go mod graph, pip show)
-- Configuration drift detection (compare staging vs production)
-- Time-travel debugging using production traces
+```bash
+NS="payments"
+kubectl -n "$NS" get deploy,pod,svc,endpointslice,hpa,pdb -o wide \
+  > "${ARTIFACT_DIR}/topology-before.txt"
+kubectl -n "$NS" get deploy <deployment> -o yaml \
+  > "${ARTIFACT_DIR}/deploy-before.yaml"
+kubectl -n "$NS" get events --sort-by=.lastTimestamp \
+  > "${ARTIFACT_DIR}/events-before.txt"
+kubectl -n "$NS" top pods > "${ARTIFACT_DIR}/top-before.txt" 2>/dev/null || true
 ```
 
-**Expected output:**
-```
-CODE_PATH: {entry → ... → failure location with key variables}
-STATE_AT_FAILURE: {variable values, object states, database state}
-BISECT_RESULT: {exact commit that introduced bug + diff}
-DEPENDENCY_ISSUES: [version conflicts, breaking changes, CVEs]
-CONFIGURATION_DRIFT: {differences between environments}
-RACE_CONDITIONS: {async issues, event ordering problems}
-ISOLATION_VERIFICATION: {confirmed single root cause vs multiple issues}
+```bash
+curl -sG "${PROM_URL}/api/v1/query_range" \
+  --data-urlencode 'query=histogram_quantile(0.99, sum by (le) (rate(http_request_duration_seconds_bucket{namespace="payments"}[5m])))' \
+  --data-urlencode "start=$(date -u -d '2 hours ago' +%s')" \
+  --data-urlencode "end=$(date -u +%s)" \
+  --data-urlencode "step=300" | jq . > "${ARTIFACT_DIR}/p99-baseline.json"
 ```
 
-**Second: Code-Reviewer Deep Dive**
+### 2.2 Hypothesis Register
 
-**Prompt:**
-```
-Review code logic and identify design issues:
+One entry per hypothesis; rejected hypotheses stay in the register with their falsifier, which prevents re-testing dead ends.
 
-Context from Debugger:
-- Code path: {CODE_PATH}
-- State at failure: {STATE_AT_FAILURE}
-- Bisect result: {BISECT_RESULT}
-
-Deliverables:
-1. Logic flaw analysis: incorrect assumptions, missing edge cases, wrong algorithms
-2. Type safety gaps: where stronger types could prevent the issue
-3. Error handling review: missing try-catch, unhandled promises, panic scenarios
-4. Contract validation: input validation gaps, output guarantees not met
-5. Architectural issues: tight coupling, missing abstractions, layering violations
-6. Similar patterns: other code locations with same vulnerability
-7. Fix design: minimal change vs refactoring vs architectural improvement
-
-Review checklist:
-- Are null/undefined values handled correctly?
-- Are async operations properly awaited/chained?
-- Are error cases explicitly handled?
-- Are type assertions safe?
-- Are API contracts respected?
-- Are side effects isolated?
+```text
+ID: H1
+Statement: If <cause X> produces <symptom Y>, then <observable M> on
+           <system S> must show <W> by <horizon T>.
+Source evidence: <queries, log links, deploy timestamps>
+Falsifier: <the observation that kills this hypothesis>
+Status: proposed | testing | confirmed | rejected
 ```
 
-**Expected output:**
-```
-LOGIC_FLAWS: [specific incorrect assumptions or algorithms]
-TYPE_SAFETY_GAPS: [where types could prevent issues]
-ERROR_HANDLING_GAPS: [unhandled error paths]
-SIMILAR_VULNERABILITIES: [other code with same pattern]
-FIX_DESIGN: {minimal change approach}
-REFACTORING_OPPORTUNITIES: {if larger improvements warranted}
-ARCHITECTURAL_CONCERNS: {if systemic issues exist}
-```
+### 2.3 Experiment Record
 
-## Phase 3: Fix Implementation - Domain-Specific Agent Execution
-
-Based on Phase 2 output, route to appropriate domain agent using Task tool:
-
-**Routing Logic:**
-- Python issues → subagent_type="python-development::python-pro"
-- TypeScript/JavaScript → subagent_type="javascript-typescript::typescript-pro"
-- Go → subagent_type="systems-programming::golang-pro"
-- Rust → subagent_type="systems-programming::rust-pro"
-- SQL/Database → subagent_type="database-cloud-optimization::database-optimizer"
-- Performance → subagent_type="application-performance::performance-engineer"
-- Security → subagent_type="security-scanning::security-auditor"
-
-**Prompt Template (adapt for language):**
-```
-Implement production-safe fix with comprehensive test coverage:
-
-Context from Phase 2:
-- Root cause: {ROOT_CAUSE}
-- Logic flaws: {LOGIC_FLAWS}
-- Fix design: {FIX_DESIGN}
-- Type safety gaps: {TYPE_SAFETY_GAPS}
-- Similar vulnerabilities: {SIMILAR_VULNERABILITIES}
-
-Deliverables:
-1. Minimal fix implementation addressing root cause (not symptoms)
-2. Unit tests:
-   - Specific failure case reproduction
-   - Edge cases (boundary values, null/empty, overflow)
-   - Error path coverage
-3. Integration tests:
-   - End-to-end scenarios with real dependencies
-   - External API mocking where appropriate
-   - Database state verification
-4. Regression tests:
-   - Tests for similar vulnerabilities
-   - Tests covering related code paths
-5. Performance validation:
-   - Benchmarks showing no degradation
-   - Load tests if applicable
-6. Production-safe practices:
-   - Feature flags for gradual rollout
-   - Graceful degradation if fix fails
-   - Monitoring hooks for fix verification
-   - Structured logging for debugging
-
-Modern implementation techniques (2024/2025):
-- AI pair programming (GitHub Copilot, Claude Code) for test generation
-- Type-driven development (leverage TypeScript, mypy, clippy)
-- Contract-first APIs (OpenAPI, gRPC schemas)
-- Observability-first (structured logs, metrics, traces)
-- Defensive programming (explicit error handling, validation)
-
-Implementation requirements:
-- Follow existing code patterns and conventions
-- Add strategic debug logging (JSON structured logs)
-- Include comprehensive type annotations
-- Update error messages to be actionable (include context, suggestions)
-- Maintain backward compatibility (version APIs if breaking)
-- Add OpenTelemetry spans for distributed tracing
-- Include metric counters for monitoring (success/failure rates)
+```text
+ID: E1
+Hypothesis under test: H1
+Change (exactly one): <what is being changed>
+Arena: staging | canary pod | single node | staging namespace
+Predicted observation: <copied verbatim from H1>
+Rollback (pre-verified): <exact commands>
+Result: prediction-confirmed | prediction-violated | inconclusive
+Decision: promote | rollback | refine hypothesis
 ```
 
-**Expected output:**
-```
-FIX_SUMMARY: {what changed and why - root cause vs symptom}
-CHANGED_FILES: [
-  {path: "...", changes: "...", reasoning: "..."}
-]
-NEW_FILES: [{path: "...", purpose: "..."}]
-TEST_COVERAGE: {
-  unit: "X scenarios",
-  integration: "Y scenarios",
-  edge_cases: "Z scenarios",
-  regression: "W scenarios"
-}
-TEST_RESULTS: {all_passed: true/false, details: "..."}
-BREAKING_CHANGES: {none | API changes with migration path}
-OBSERVABILITY_ADDITIONS: [
-  {type: "log", location: "...", purpose: "..."},
-  {type: "metric", name: "...", purpose: "..."},
-  {type: "trace", span: "...", purpose: "..."}
-]
-FEATURE_FLAGS: [{flag: "...", rollout_strategy: "..."}]
-BACKWARD_COMPATIBILITY: {maintained | breaking with mitigation}
+## 3. Investigation Recipes by Signal
+
+### 3.1 Metric Spikes (Prometheus)
+
+Quantify the spike, isolate the affected population, overlay change events.
+
+Quantify versus comparison windows:
+
+```promql
+sum by (namespace) (rate(http_requests_total{status=~"5.."}[5m]))
+sum by (namespace) (rate(http_requests_total{status=~"5.."}[5m] offset 1h))
 ```
 
-## Phase 4: Verification - Automated Testing and Performance Validation
+Isolate the population (top contributor usually names the suspect):
 
-Use Task tool with subagent_type="unit-testing::test-automator" and subagent_type="application-performance::performance-engineer":
-
-**First: Test-Automator Regression Suite**
-
-**Prompt:**
-```
-Run comprehensive regression testing and verify fix quality:
-
-Context from Phase 3:
-- Fix summary: {FIX_SUMMARY}
-- Changed files: {CHANGED_FILES}
-- Test coverage: {TEST_COVERAGE}
-- Test results: {TEST_RESULTS}
-
-Deliverables:
-1. Full test suite execution:
-   - Unit tests (all existing + new)
-   - Integration tests
-   - End-to-end tests
-   - Contract tests (if microservices)
-2. Regression detection:
-   - Compare test results before/after fix
-   - Identify any new failures
-   - Verify all edge cases covered
-3. Test quality assessment:
-   - Code coverage metrics (line, branch, condition)
-   - Mutation testing if applicable
-   - Test determinism (run multiple times)
-4. Cross-environment testing:
-   - Test in staging/QA environments
-   - Test with production-like data volumes
-   - Test with realistic network conditions
-5. Security testing:
-   - Authentication/authorization checks
-   - Input validation testing
-   - SQL injection, XSS prevention
-   - Dependency vulnerability scan
-6. Automated regression test generation:
-   - Use AI to generate additional edge case tests
-   - Property-based testing for complex logic
-   - Fuzzing for input validation
-
-Modern testing practices (2024/2025):
-- AI-generated test cases (GitHub Copilot, Claude Code)
-- Snapshot testing for UI/API contracts
-- Visual regression testing for frontend
-- Chaos engineering for resilience testing
-- Production traffic replay for load testing
+```promql
+topk(10, sum by (namespace, service, handler) (rate(http_requests_total{status=~"5.."}[5m])))
 ```
 
-**Expected output:**
-```
-TEST_RESULTS: {
-  total: N,
-  passed: X,
-  failed: Y,
-  skipped: Z,
-  new_failures: [list if any],
-  flaky_tests: [list if any]
-}
-CODE_COVERAGE: {
-  line: "X%",
-  branch: "Y%",
-  function: "Z%",
-  delta: "+/-W%"
-}
-REGRESSION_DETECTED: {yes/no + details if yes}
-CROSS_ENV_RESULTS: {staging: "...", qa: "..."}
-SECURITY_SCAN: {
-  vulnerabilities: [list or "none"],
-  static_analysis: "...",
-  dependency_audit: "..."
-}
-TEST_QUALITY: {deterministic: true/false, coverage_adequate: true/false}
+Overlay change events: pods that (re)started inside the spike window are first suspects:
+
+```promql
+sum by (namespace, pod) (changes(container_start_time_seconds{namespace="payments"}[30m]))
+sum by (namespace, pod) (increase(kube_pod_container_status_restarts_total{namespace="payments"}[30m]))
 ```
 
-**Second: Performance-Engineer Validation**
+Rule saturation in or out before blaming code:
 
-**Prompt:**
-```
-Measure performance impact and validate no regressions:
+```promql
+# CPU throttling fraction per pod
+sum by (pod) (rate(container_cpu_cfs_throttled_periods_total{namespace="payments"}[5m]))
+  /
+sum by (pod) (rate(container_cpu_cfs_periods_total{namespace="payments"}[5m]))
 
-Context from Test-Automator:
-- Test results: {TEST_RESULTS}
-- Code coverage: {CODE_COVERAGE}
-- Fix summary: {FIX_SUMMARY}
-
-Deliverables:
-1. Performance benchmarks:
-   - Response time (p50, p95, p99)
-   - Throughput (requests/second)
-   - Resource utilization (CPU, memory, I/O)
-   - Database query performance
-2. Comparison with baseline:
-   - Before/after metrics
-   - Acceptable degradation thresholds
-   - Performance improvement opportunities
-3. Load testing:
-   - Stress test under peak load
-   - Soak test for memory leaks
-   - Spike test for burst handling
-4. APM analysis:
-   - Distributed trace analysis
-   - Slow query detection
-   - N+1 query patterns
-5. Resource profiling:
-   - CPU flame graphs
-   - Memory allocation tracking
-   - Goroutine/thread leaks
-6. Production readiness:
-   - Capacity planning impact
-   - Scaling characteristics
-   - Cost implications (cloud resources)
-
-Modern performance practices:
-- OpenTelemetry instrumentation
-- Continuous profiling (Pyroscope, pprof)
-- Real User Monitoring (RUM)
-- Synthetic monitoring
+# Memory headroom: working set as a fraction of the limit
+topk(10,
+  max by (namespace, pod, container) (container_memory_working_set_bytes{namespace="payments", container!=""})
+    /
+  max by (namespace, pod, container) (kube_pod_container_resource_limits{namespace="payments", resource="memory"}))
 ```
 
-**Expected output:**
-```
-PERFORMANCE_BASELINE: {
-  response_time_p95: "Xms",
-  throughput: "Y req/s",
-  cpu_usage: "Z%",
-  memory_usage: "W MB"
-}
-PERFORMANCE_AFTER_FIX: {
-  response_time_p95: "Xms (delta)",
-  throughput: "Y req/s (delta)",
-  cpu_usage: "Z% (delta)",
-  memory_usage: "W MB (delta)"
-}
-PERFORMANCE_IMPACT: {
-  verdict: "improved|neutral|degraded",
-  acceptable: true/false,
-  reasoning: "..."
-}
-LOAD_TEST_RESULTS: {
-  max_throughput: "...",
-  breaking_point: "...",
-  memory_leaks: "none|detected"
-}
-APM_INSIGHTS: [slow queries, N+1 patterns, bottlenecks]
-PRODUCTION_READY: {yes/no + blockers if no}
+Scrape hygiene: use a range at least 4-5x the scrape interval; a 30s scrape with a 1m rate window returns holes, not truth.
+
+### 3.2 Log Error Bursts (Loki LogQL)
+
+Burst volume by namespace:
+
+```logql
+sum by (namespace) (count_over_time({namespace="payments"} |= "error" [10m]))
 ```
 
-**Third: Code-Reviewer Final Approval**
+Filter to a level, render just the message:
 
-**Prompt:**
-```
-Perform final code review and approve for deployment:
-
-Context from Testing:
-- Test results: {TEST_RESULTS}
-- Regression detected: {REGRESSION_DETECTED}
-- Performance impact: {PERFORMANCE_IMPACT}
-- Security scan: {SECURITY_SCAN}
-
-Deliverables:
-1. Code quality review:
-   - Follows project conventions
-   - No code smells or anti-patterns
-   - Proper error handling
-   - Adequate logging and observability
-2. Architecture review:
-   - Maintains system boundaries
-   - No tight coupling introduced
-   - Scalability considerations
-3. Security review:
-   - No security vulnerabilities
-   - Proper input validation
-   - Authentication/authorization correct
-4. Documentation review:
-   - Code comments where needed
-   - API documentation updated
-   - Runbook updated if operational impact
-5. Deployment readiness:
-   - Rollback plan documented
-   - Feature flag strategy defined
-   - Monitoring/alerting configured
-6. Risk assessment:
-   - Blast radius estimation
-   - Rollout strategy recommendation
-   - Success metrics defined
-
-Review checklist:
-- All tests pass
-- No performance regressions
-- Security vulnerabilities addressed
-- Breaking changes documented
-- Backward compatibility maintained
-- Observability adequate
-- Deployment plan clear
+```logql
+{namespace="payments", app="checkout"} | json | level="error" | line_format "{{.msg}}"
 ```
 
-**Expected output:**
-```
-REVIEW_STATUS: {APPROVED|NEEDS_REVISION|BLOCKED}
-CODE_QUALITY: {score/assessment}
-ARCHITECTURE_CONCERNS: [list or "none"]
-SECURITY_CONCERNS: [list or "none"]
-DEPLOYMENT_RISK: {low|medium|high}
-ROLLBACK_PLAN: {
-  steps: ["..."],
-  estimated_time: "X minutes",
-  data_recovery: "..."
-}
-ROLLOUT_STRATEGY: {
-  approach: "canary|blue-green|rolling|big-bang",
-  phases: ["..."],
-  success_metrics: ["..."],
-  abort_criteria: ["..."]
-}
-MONITORING_REQUIREMENTS: [
-  {metric: "...", threshold: "...", action: "..."}
-]
-FINAL_VERDICT: {
-  approved: true/false,
-  blockers: [list if not approved],
-  recommendations: ["..."]
-}
+Match a family of failures without parsing:
+
+```logql
+sum by (pod) (rate({namespace="payments", app="checkout"} |~ "(?i)(timeout|deadline exceeded|connection refused)" [5m]))
 ```
 
-## Phase 5: Documentation and Prevention - Long-term Resilience
+Group otherwise-unique lines by shape:
 
-Use Task tool with subagent_type="comprehensive-review::code-reviewer" for prevention strategies:
-
-**Prompt:**
-```
-Document fix and implement prevention strategies to avoid recurrence:
-
-Context from Phase 4:
-- Final verdict: {FINAL_VERDICT}
-- Review status: {REVIEW_STATUS}
-- Root cause: {ROOT_CAUSE}
-- Rollback plan: {ROLLBACK_PLAN}
-- Monitoring requirements: {MONITORING_REQUIREMENTS}
-
-Deliverables:
-1. Code documentation:
-   - Inline comments for non-obvious logic (minimal)
-   - Function/class documentation updates
-   - API contract documentation
-2. Operational documentation:
-   - CHANGELOG entry with fix description and version
-   - Release notes for stakeholders
-   - Runbook entry for on-call engineers
-   - Postmortem document (if high-severity incident)
-3. Prevention through static analysis:
-   - Add linting rules (eslint, ruff, golangci-lint)
-   - Configure stricter compiler/type checker settings
-   - Add custom lint rules for domain-specific patterns
-   - Update pre-commit hooks
-4. Type system enhancements:
-   - Add exhaustiveness checking
-   - Use discriminated unions/sum types
-   - Add const/readonly modifiers
-   - Leverage branded types for validation
-5. Monitoring and alerting:
-   - Create error rate alerts (Sentry, DataDog)
-   - Add custom metrics for business logic
-   - Set up synthetic monitors (Pingdom, Checkly)
-   - Configure SLO/SLI dashboards
-6. Architectural improvements:
-   - Identify similar vulnerability patterns
-   - Propose refactoring for better isolation
-   - Document design decisions
-   - Update architecture diagrams if needed
-7. Testing improvements:
-   - Add property-based tests
-   - Expand integration test scenarios
-   - Add chaos engineering tests
-   - Document testing strategy gaps
-
-Modern prevention practices (2024/2025):
-- AI-assisted code review rules (GitHub Copilot, Claude Code)
-- Continuous security scanning (Snyk, Dependabot)
-- Infrastructure as Code validation (Terraform validate, CloudFormation Linter)
-- Contract testing for APIs (Pact, OpenAPI validation)
-- Observability-driven development (instrument before deploying)
+```logql
+sum by (msg) (
+  count_over_time({namespace="payments", app="checkout"} |= "error" | pattern "<_> <level> <msg>" [10m])
+)
 ```
 
-**Expected output:**
-```
-DOCUMENTATION_UPDATES: [
-  {file: "CHANGELOG.md", summary: "..."},
-  {file: "docs/runbook.md", summary: "..."},
-  {file: "docs/architecture.md", summary: "..."}
-]
-PREVENTION_MEASURES: {
-  static_analysis: [
-    {tool: "eslint", rule: "...", reason: "..."},
-    {tool: "ruff", rule: "...", reason: "..."}
-  ],
-  type_system: [
-    {enhancement: "...", location: "...", benefit: "..."}
-  ],
-  pre_commit_hooks: [
-    {hook: "...", purpose: "..."}
-  ]
-}
-MONITORING_ADDED: {
-  alerts: [
-    {name: "...", threshold: "...", channel: "..."}
-  ],
-  dashboards: [
-    {name: "...", metrics: [...], url: "..."}
-  ],
-  slos: [
-    {service: "...", sli: "...", target: "...", window: "..."}
-  ]
-}
-ARCHITECTURAL_IMPROVEMENTS: [
-  {improvement: "...", reasoning: "...", effort: "small|medium|large"}
-]
-SIMILAR_VULNERABILITIES: {
-  found: N,
-  locations: [...],
-  remediation_plan: "..."
-}
-FOLLOW_UP_TASKS: [
-  {task: "...", priority: "high|medium|low", owner: "..."}
-]
-POSTMORTEM: {
-  created: true/false,
-  location: "...",
-  incident_severity: "SEV1|SEV2|SEV3|SEV4"
-}
-KNOWLEDGE_BASE_UPDATES: [
-  {article: "...", summary: "..."}
-]
+Procedure:
+
+1. Locate onset: compare consecutive windows (`offset 1h`, `offset 2h`) or a Grafana Explore histogram (see `observability/grafana`).
+2. Rank message families; sample 3-5 representative raw lines per family.
+3. Align onset with deploy/restart timestamps from 3.1. Onset within 2 minutes of a rollout is a deploy candidate; onset at a traffic peak with no change event is a load candidate.
+4. Distrust silence without confirmation: flat zero at burst time plus a sudden backfill later is ingestion lag, not recovery (pitfalls, 7.4).
+
+### 3.3 Latency Tails (p99 Decomposition)
+
+Decide whether the whole distribution moved (overload) or only the tail (contention, slow dependency, retries), then attribute the tail.
+
+```promql
+histogram_quantile(0.99, sum by (le) (rate(http_request_duration_seconds_bucket{service="checkout"}[5m])))
+histogram_quantile(0.50, sum by (le) (rate(http_request_duration_seconds_bucket{service="checkout"}[5m])))
 ```
 
-## Multi-Domain Coordination for Complex Issues
+| p50 | p99 | Reading | First suspects |
+| --- | --- | --- | --- |
+| flat | up | tail-only pathology | queueing, GC pauses, lock contention, one slow dependency, retries |
+| up | up proportionally | systemic overload | saturation, insufficient replicas, expensive change in hot path |
+| up | down | recovery in progress or traffic shifted | verify population mix before celebrating |
 
-For issues spanning multiple domains, orchestrate specialized agents sequentially with explicit context passing:
+Rank handlers by their own tail:
 
-**Example 1: Database Performance Issue Causing Application Timeouts**
-
-**Sequence:**
-1. **Phase 1-2**: error-detective + debugger identify slow database queries
-2. **Phase 3a**: Task(subagent_type="database-cloud-optimization::database-optimizer")
-   - Optimize query with proper indexes
-   - Context: "Query execution taking 5s, missing index on user_id column, N+1 query pattern detected"
-3. **Phase 3b**: Task(subagent_type="application-performance::performance-engineer")
-   - Add caching layer for frequently accessed data
-   - Context: "Database query optimized from 5s to 50ms by adding index on user_id column. Application still experiencing 2s response times due to N+1 query pattern loading 100+ user records per request. Add Redis caching with 5-minute TTL for user profiles."
-4. **Phase 3c**: Task(subagent_type="incident-response::devops-troubleshooter")
-   - Configure monitoring for query performance and cache hit rates
-   - Context: "Cache layer added with Redis. Need monitoring for: query p95 latency (threshold: 100ms), cache hit rate (threshold: >80%), cache memory usage (alert at 80%)."
-
-**Example 2: Frontend JavaScript Error in Production**
-
-**Sequence:**
-1. **Phase 1**: error-detective analyzes Sentry error reports
-   - Context: "TypeError: Cannot read property 'map' of undefined, 500+ occurrences in last hour, affects Safari users on iOS 14"
-2. **Phase 2**: debugger + code-reviewer investigate
-   - Context: "API response sometimes returns null instead of empty array when no results. Frontend assumes array."
-3. **Phase 3a**: Task(subagent_type="javascript-typescript::typescript-pro")
-   - Fix frontend with proper null checks
-   - Add type guards
-   - Context: "Backend API /api/users endpoint returning null instead of [] when no results. Fix frontend to handle both. Add TypeScript strict null checks."
-4. **Phase 3b**: Task(subagent_type="backend-development::backend-architect")
-   - Fix backend to always return array
-   - Update API contract
-   - Context: "Frontend now handles null, but API should follow contract and return [] not null. Update OpenAPI spec to document this."
-5. **Phase 4**: test-automator runs cross-browser tests
-6. **Phase 5**: code-reviewer documents API contract changes
-
-**Example 3: Security Vulnerability in Authentication**
-
-**Sequence:**
-1. **Phase 1**: error-detective reviews security scan report
-   - Context: "SQL injection vulnerability in login endpoint, Snyk severity: HIGH"
-2. **Phase 2**: debugger + security-auditor investigate
-   - Context: "User input not sanitized in SQL WHERE clause, allows authentication bypass"
-3. **Phase 3**: Task(subagent_type="security-scanning::security-auditor")
-   - Implement parameterized queries
-   - Add input validation
-   - Add rate limiting
-   - Context: "Replace string concatenation with prepared statements. Add input validation for email format. Implement rate limiting (5 attempts per 15 min)."
-4. **Phase 4a**: test-automator adds security tests
-   - SQL injection attempts
-   - Brute force scenarios
-5. **Phase 4b**: security-auditor performs penetration testing
-6. **Phase 5**: code-reviewer documents security improvements and creates postmortem
-
-**Context Passing Template:**
-```
-Context for {next_agent}:
-
-Completed by {previous_agent}:
-- {summary_of_work}
-- {key_findings}
-- {changes_made}
-
-Remaining work:
-- {specific_tasks_for_next_agent}
-- {files_to_modify}
-- {constraints_to_follow}
-
-Dependencies:
-- {systems_or_components_affected}
-- {data_needed}
-- {integration_points}
-
-Success criteria:
-- {measurable_outcomes}
-- {verification_steps}
+```promql
+topk(10,
+  histogram_quantile(0.99,
+    sum by (le, handler) (rate(http_request_duration_seconds_bucket{service="checkout"}[10m]))))
 ```
 
-## Configuration Options
+Weigh traffic share (`http_request_duration_seconds_count`); a hot handler at a mediocre p99 can own the aggregate tail.
 
-Customize workflow behavior by setting priorities at invocation:
+Retry amplification: if downstream calls roughly doubled at the same moment, a timeout-plus-retry policy is multiplying load during degradation:
 
-**VERIFICATION_LEVEL**: Controls depth of testing and validation
-- **minimal**: Quick fix with basic tests, skip performance benchmarks
-  - Use for: Low-risk bugs, cosmetic issues, documentation fixes
-  - Phases: 1-2-3 (skip detailed Phase 4)
-  - Timeline: ~30 minutes
-- **standard**: Full test coverage + code review (default)
-  - Use for: Most production bugs, feature issues, data bugs
-  - Phases: 1-2-3-4 (all verification)
-  - Timeline: ~2-4 hours
-- **comprehensive**: Standard + security audit + performance benchmarks + chaos testing
-  - Use for: Security issues, performance problems, data corruption, high-traffic systems
-  - Phases: 1-2-3-4-5 (including long-term prevention)
-  - Timeline: ~1-2 days
-
-**PREVENTION_FOCUS**: Controls investment in future prevention
-- **none**: Fix only, no prevention work
-  - Use for: One-off issues, legacy code being deprecated, external library bugs
-  - Output: Code fix + tests only
-- **immediate**: Add tests and basic linting (default)
-  - Use for: Common bugs, recurring patterns, team codebase
-  - Output: Fix + tests + linting rules + minimal monitoring
-- **comprehensive**: Full prevention suite with monitoring, architecture improvements
-  - Use for: High-severity incidents, systemic issues, architectural problems
-  - Output: Fix + tests + linting + monitoring + architecture docs + postmortem
-
-**ROLLOUT_STRATEGY**: Controls deployment approach
-- **immediate**: Deploy directly to production (for hotfixes, low-risk changes)
-- **canary**: Gradual rollout to subset of traffic (default for medium-risk)
-- **blue-green**: Full environment switch with instant rollback capability
-- **feature-flag**: Deploy code but control activation via feature flags (high-risk changes)
-
-**OBSERVABILITY_LEVEL**: Controls instrumentation depth
-- **minimal**: Basic error logging only
-- **standard**: Structured logs + key metrics (default)
-- **comprehensive**: Full distributed tracing + custom dashboards + SLOs
-
-**Example Invocation:**
-```
-Issue: Users experiencing timeout errors on checkout page (500+ errors/hour)
-
-Config:
-- VERIFICATION_LEVEL: comprehensive (affects revenue)
-- PREVENTION_FOCUS: comprehensive (high business impact)
-- ROLLOUT_STRATEGY: canary (test on 5% traffic first)
-- OBSERVABILITY_LEVEL: comprehensive (need detailed monitoring)
+```promql
+sum(rate(dependency_request_duration_seconds_count{service="checkout"}[5m]))
+sum(rate(dependency_request_duration_seconds_count{service="checkout"}[5m] offset 1h))
 ```
 
-## Modern Debugging Tools Integration
+Runtime pauses and throttling (names vary by client library; adapt):
 
-This workflow leverages modern 2024/2025 tools:
+```promql
+histogram_quantile(0.99, sum by (le, pod) (rate(gc_pause_seconds_bucket{namespace="payments"}[5m])))
+sum by (pod) (rate(container_cpu_cfs_throttled_periods_total{namespace="payments"}[5m]))
+```
 
-**Observability Platforms:**
-- Sentry (error tracking, release tracking, performance monitoring)
-- DataDog (APM, logs, traces, infrastructure monitoring)
-- OpenTelemetry (vendor-neutral distributed tracing)
-- Honeycomb (observability for complex distributed systems)
-- New Relic (APM, synthetic monitoring)
+Use distributed traces (see `observability/opentelemetry`) when multiple downstreams are involved; per-dependency histograms cannot show critical-path serialization.
 
-**AI-Assisted Debugging:**
-- GitHub Copilot (code suggestions, test generation, bug pattern recognition)
-- Claude Code (comprehensive code analysis, architecture review)
-- Sourcegraph Cody (codebase search and understanding)
-- Tabnine (code completion with bug prevention)
+### 3.4 Crash Loops
 
-**Git and Version Control:**
-- Automated git bisect with reproduction scripts
-- GitHub Actions for automated testing on bisect commits
-- Git blame analysis for identifying code ownership
-- Commit message analysis for understanding changes
+Classify the exit, then match the class to a cause family.
 
-**Testing Frameworks:**
-- Jest/Vitest (JavaScript/TypeScript unit/integration tests)
-- pytest (Python testing with fixtures and parametrization)
-- Go testing + testify (Go unit and table-driven tests)
-- Playwright/Cypress (end-to-end browser testing)
-- k6/Locust (load and performance testing)
+```bash
+kubectl -n "$NS" get pods --sort-by=.status.containerStatuses[0].restartCount
+kubectl -n "$NS" get pod <pod> -o jsonpath='{range .status.containerStatuses[*]}{.name}{" exit="}{.lastState.terminated.exitCode}{" reason="}{.lastState.terminated.reason}{"\n"}{end}'
+kubectl -n "$NS" logs <pod> --previous --tail=200
+kubectl -n "$NS" describe pod <pod> | sed -n '/Events:/,$p'
+```
 
-**Static Analysis:**
-- ESLint/Prettier (JavaScript/TypeScript linting and formatting)
-- Ruff/mypy (Python linting and type checking)
-- golangci-lint (Go comprehensive linting)
-- Clippy (Rust linting and best practices)
-- SonarQube (enterprise code quality and security)
+| Code | Meaning | First places to look |
+| --- | --- | --- |
+| 0 | process exited cleanly | short-lived entrypoint under a restart policy; PID 1 reaping (see `hermes-s6-container-supervision`) |
+| 1 | uncaught application error | `--previous` logs; missing env var; failed config parse |
+| 126 | command cannot execute | missing exec bit, bad shebang, wrong arch |
+| 127 | command not found | image tag drift, entrypoint renamed in new build |
+| 134 | SIGABRT | native assert, glibc abort, JVM fatal error |
+| 137 | SIGKILL (128+9) | OOMKill (check `reason`) or liveness-probe kill |
+| 139 | SIGSEGV | native extension, JIT bug, corrupted shared lib |
+| 143 | SIGTERM (128+15) | shutdown exceeded `terminationGracePeriodSeconds`; slow drain under liveness deadline |
 
-**Performance Profiling:**
-- Chrome DevTools (frontend performance)
-- pprof (Go profiling)
-- py-spy (Python profiling)
-- Pyroscope (continuous profiling)
-- Flame graphs for CPU/memory analysis
+Distinguish process exit from probe kill: `lastState.terminated.reason` is `Error` for app exits and `OOMKilled` for cgroup kills; probe kills surface as `Liveness probe failed` Warning events with exit 137 or 143. A restart loop with healthy logs points at probe timing (probe timeout shorter than a slow endpoint, missing startup probe on a cold cache).
 
-**Security Scanning:**
-- Snyk (dependency vulnerability scanning)
-- Dependabot (automated dependency updates)
-- OWASP ZAP (security testing)
-- Semgrep (custom security rules)
-- npm audit / pip-audit / cargo audit
+Verify the running image matches intent before chasing code:
 
-## Success Criteria
+```bash
+kubectl -n "$NS" get pod <pod> -o jsonpath='{range .spec.containers[*]}{.name}{" "}{.image}{"\n"}{end}'
+kubectl -n "$NS" get deploy <deployment> -o jsonpath='{.spec.template.spec.containers[*].image}{"\n"}'
+```
 
-A fix is considered complete when ALL of the following are met:
+If live spec and GitOps source disagree, switch to `gitops-troubleshooting`.
 
-**Root Cause Understanding:**
-- Root cause is identified with supporting evidence
-- Failure mechanism is clearly documented
-- Introducing commit identified (if applicable via git bisect)
-- Similar vulnerabilities catalogued
+### 3.5 OOMKills (cgroup Memory Analysis)
 
-**Fix Quality:**
-- Fix addresses root cause, not just symptoms
-- Minimal code changes (avoid over-engineering)
-- Follows project conventions and patterns
-- No code smells or anti-patterns introduced
-- Backward compatibility maintained (or breaking changes documented)
+Confirm the OOMKill, characterize the growth shape, separate leak from underprovisioning.
 
-**Testing Verification:**
-- All existing tests pass (zero regressions)
-- New tests cover the specific bug reproduction
-- Edge cases and error paths tested
-- Integration tests verify end-to-end behavior
-- Test coverage increased (or maintained at high level)
+```bash
+kubectl -n "$NS" get pod <pod> -o jsonpath='{range .status.containerStatuses[*]}{.name}{" reason="}{.lastState.terminated.reason}{" exit="}{.lastState.terminated.exitCode}{"\n"}{end}'
+```
 
-**Performance & Security:**
-- No performance degradation (p95 latency within 5% of baseline)
-- No security vulnerabilities introduced
-- Resource usage acceptable (memory, CPU, I/O)
-- Load testing passed for high-traffic changes
+```promql
+max by (namespace, pod, container) (kube_pod_container_status_last_terminated_reason{reason="OOMKilled"} == 1)
+sum by (pod) (increase(kube_pod_container_status_restarts_total{namespace="payments"}[1h]))
+```
 
-**Deployment Readiness:**
-- Code review approved by domain expert
-- Rollback plan documented and tested
-- Feature flags configured (if applicable)
-- Monitoring and alerting configured
-- Runbook updated with troubleshooting steps
+Growth shape on `container_memory_working_set_bytes` decides the hypothesis class:
 
-**Prevention Measures:**
-- Static analysis rules added (if applicable)
-- Type system improvements implemented (if applicable)
-- Documentation updated (code, API, runbook)
-- Postmortem created (if high-severity incident)
-- Knowledge base article created (if novel issue)
+| Shape | Class | Next step |
+| --- | --- | --- |
+| monotonic climb proportional to requests | leak | correlate with QPS; profile |
+| step change at deploy time | new build footprint | diff resource usage old vs new cohort |
+| steady but pinned at limit | underprovisioned limit | raise limit as canary experiment |
+| sawtooth with periodic reset | cache or batch window | bound cache; spread batch schedule |
 
-**Metrics:**
-- Mean Time to Recovery (MTTR): < 4 hours for SEV2+
-- Bug recurrence rate: 0% (same root cause should not recur)
-- Test coverage: No decrease, ideally increase
-- Deployment success rate: > 95% (rollback rate < 5%)
+Node-level forensics when pod metrics are inconclusive (cgroup v2 paths; v1 uses `/sys/fs/cgroup/memory/memory.usage_in_bytes` and `memory.failcnt`):
 
-Issue to resolve: $ARGUMENTS
+```bash
+kubectl debug node/<node> -it --image=ubuntu:24.04 -- chroot /host sh -c \
+  'cat /sys/fs/cgroup/memory.peak 2>/dev/null; cat /sys/fs/cgroup/memory.events'
+kubectl debug node/<node> -it --image=ubuntu:24.04 -- chroot /host sh -c \
+  'grep -E "^(anon|file|slab|sock|workingset_refault) " /sys/fs/cgroup/memory.stat'
+```
+
+Interpretation:
+
+- `memory.events` `oom_kill` increments confirm the cgroup delivered the kill.
+- Working set is roughly `memory.current - inactive_file`: the kernel reclaims page cache, so growth dominated by `file` rarely OOMs a cgroup; growth dominated by `anon` does.
+- JVM: verify container awareness (`-XX:+UseContainerSupport`, default since JDK 8u191/11) and set `-XX:MaxRAMPercentage` below 75% when the process also allocates off-heap (Netty arenas, direct buffers, JNI). Python: `MALLOC_ARENA_MAX` for glibc arena bloat. Node: watch `--max-old-space-size` against the limit.
+- Node-level pressure (Burstable pods evicted first): check `node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes < 0.10` and kubelet eviction events; that path is platform work, see `kubernetes-troubleshooting`.
+
+Canary test for underprovisioned: raise only the limit on one canary pod. Prediction: restarts stop AND working set plateaus below the new limit. If restarts stop but growth continues monotonically, the limit raise bought time -- the leak hypothesis is confirmed instead, and the fix is a profile plus bounded caches, not a bigger number.
+
+## 4. Hypothesis Templates
+
+Canonical form:
+
+```text
+If <cause X> is producing <symptom Y>, then <observable M> must show
+<W> by <horizon T>; observing <not-W> refutes it.
+```
+
+Cheap refutation first: if the prediction is checkable against telemetry that already exists, check it before designing any experiment. Many hypotheses die free. Filled examples by class:
+
+- **Deploy regression.** If the 14:02 build causes the p99 spike, then pods started after 14:02 (cohort by `container_start_time_seconds`) must show higher p99 than pre-14:02 pods on the same traffic mix.
+- **Connection pool exhaustion.** If pool exhaustion causes the 5xx burst, then the in-flight gauge must plateau at the pool cap while request rate drops (saturation sawtooth), and raising only pool size on a canary must remove the plateau.
+- **GC contention.** If GC pauses cause the p99 tail, then pause-time histograms must spike in the same 5-minute windows as the tail, and a canary with doubled heap must cut p99 by the predicted fraction.
+- **Cache cold start.** If cache misses cause read latency after the restart, then hit ratio must drop at restart time and recover with the same time constant as the latency; pre-warming one canary must skip the slow window.
+- **Memory leak.** If an unbounded cache causes the OOMKill, then `anon` memory per 1k requests must be roughly constant (footprint grows with cumulative traffic, not concurrency), and bounding the cache on a canary must flatten the slope.
+- **Probe timing.** If the liveness probe kills slow-but-alive pods under CPU throttling, then throttled-period spikes must precede each restart, and a canary with doubled probe timeout must stop the loop without code changes.
+- **Config drift.** If an env change (not the image) causes the symptom, then two pods on the same image digest but different ConfigMap revisions must differ on the symptom metric.
+
+Rules:
+
+- One cause per hypothesis. "The deploy and the traffic spike" is two hypotheses; test the cheaper first.
+- The prediction must name an observable and a horizon. "It will get better" is not a prediction.
+- Record the falsifier before running anything; after-the-fact rationalization is how correlation becomes doctrine.
+
+## 5. Experiment Design
+
+### 5.1 Minimum Blast Radius
+
+Choose the smallest arena whose population includes the failing population and whose noise floor is below the predicted effect size.
+
+| Arena | Use for | Notes |
+| --- | --- | --- |
+| staging namespace | anything testable off production traffic | required first stop when staging exists |
+| single canary pod | code, config, limits, probe tuning | traffic share ~ replica share unless a splitter exists |
+| one cordoned node | daemonset, kernel, kubelet changes | `kubectl cordon` first; drain after canary is stable |
+| traffic-split canary | user-facing behavior changes | ingress canary annotations, mesh weights, or gateway routes |
+| whole cluster | never in this loop | escalate; see blast-radius budget in SKILL.md |
+
+Detectability check: the predicted effect must exceed baseline variance:
+
+```promql
+stddev_over_time(histogram_quantile(0.99, sum by (le) (rate(http_request_duration_seconds_bucket{service="checkout"}[5m])))[1h:5m])
+```
+
+If the predicted improvement is smaller than one standard deviation of the baseline, extend the canary hold or increase canary share; otherwise the experiment cannot conclude.
+
+### 5.2 Canary and Dark-Launch Patterns
+
+Manual replica canary (no mesh required): clone the deployment with a distinct name and the same Service selector labels; its share is approximately its replica share.
+
+```bash
+kubectl -n "$NS" get deploy checkout -o yaml \
+  | sed -e 's/name: checkout$/name: checkout-canary/' \
+        -e 's/image: \(.*\):.*/image: \1:<candidate-tag>/' \
+        -e '/resourceVersion/d' -e '/uid:/d' -e '/creationTimestamp/d' \
+  | kubectl apply -f -
+kubectl -n "$NS" scale deploy/checkout-canary --replicas=1
+```
+
+Label cohorts explicitly (`track: canary` vs `track: stable` on the pod template) so every comparison query can disaggregate:
+
+```promql
+histogram_quantile(0.99, sum by (le, track) (rate(http_request_duration_seconds_bucket{service="checkout"}[5m])))
+```
+
+With an ingress or mesh splitter, ramp by weight instead of replicas. Default ramp (tighten holds to your SLO evaluation window; never shorter):
+
+| Step | Share | Minimum hold | Promote when |
+| --- | --- | --- | --- |
+| 0 | 1 pod | 15 min | canary error rate <= stable cohort |
+| 1 | 10% | 2 evaluation windows | p99 within 10% of prediction, no adjacent regression |
+| 2 | 50% | 2 evaluation windows | same, plus saturation headroom unchanged |
+| 3 | 100% | watch window begins | hand to verification, section 6 |
+
+Dark-launch: run the candidate with a distinct label set and zero external traffic; drive it with synthetic checks (below) or mirrored traffic. Use when even 1-in-N customer exposure is unacceptable.
+
+### 5.3 Synthetic Checks
+
+```bash
+while sleep 1; do
+  curl -s -o /dev/null --max-time 5 \
+    -w '%{http_code} %{time_total}\n' \
+    "http://checkout-canary.payments.svc:8080/healthz/diag"
+done | tee -a "${ARTIFACT_DIR}/synth-canary.tsv"
+```
+
+For continuous probes use blackbox_exporter (`probe_duration_seconds` / `probe_success` per target; see `observability/prometheus`). Synthetic checks detect dead, not slow: pair them with histogram queries, and route a fraction of probes through the external path -- internal-only probes can stay green while the edge is red.
+
+### 5.4 One-Variable Rule
+
+Change exactly one variable per experiment. If the fix needs a new image and an env change, run them as two experiments in sequence; combined, neither result is attributable. The explicit exception is rollback itself, which restores the whole prior state at once.
+
+## 6. Verification and Regression Watch
+
+### 6.1 Acceptance Criteria (numeric, written before applying)
+
+```text
+The fix is accepted only if, during the watch window:
+  - p99 < 450 ms in 95% of 5-minute windows on the fixed population
+  - 5xx rate < 0.1% of requests on the fixed population
+  - restart count delta = 0 on the fixed population
+  - downstream connection count within 120% of pre-fix baseline
+  - no adjacent regression (section 6.3) for 2 consecutive windows
+```
+
+### 6.2 Watch Window by Severity
+
+| Severity at time of fix | Watch window | Coverage required |
+| --- | --- | --- |
+| SEV4/SEV5 | 2h post-promotion | current traffic regime |
+| SEV3 | 24h | at least one peak |
+| SEV1/SEV2 | 72h | full traffic cycle: peak, trough, one batch window |
+
+### 6.3 Adjacent-Regression Watchlist
+
+A fix that improves its target while degrading a neighbor is a relocation, not a fix. Watch:
+
+- error rate and p99 of sibling services sharing the touched dependency
+- connection counts, queue depths, saturation of the shared downstream
+- CPU throttling and memory headroom after limit or flag changes
+- HPA actuation churn (`increase(kube_horizontalpodautoscaler_status_current_replicas[1h])`) indicating a flapping signal
+- cost-adjacent counters when the fix raises limits or replica counts
+
+```promql
+sum by (service) (rate(http_requests_total{status=~"5..", namespace="payments"}[5m]))
+```
+
+### 6.4 Regression Trigger
+
+Any acceptance criterion or adjacent metric breaching for two consecutive evaluation windows: execute the armed rollback, record the breach in the experiment record, re-enter the loop at HYPOTHESIZE. Do not patch forward from a breached watch window.
+
+On success: promote to full fleet, keep the watch window running, hand the verified procedure to `runbook-creator`, and review the change against `production-readiness` before closing the incident.
+
+## 7. Common Pitfalls
+
+### 7.1 Correlation versus Causation
+
+Trap: a deploy timestamp sits near the spike, rollback "fixes" it, and the real cause (cache warmup cycle, cron-driven traffic pattern, cert rotation) returns on its own schedule. Countermeasure: demand mechanism evidence. The hypothesis must chain cause to effect through an observable intermediate -- queue depth, hit ratio, pool saturation -- not time proximity. Test: if removing all timestamps collapses the story, it was coincidence.
+
+### 7.2 Fix-the-Symptom
+
+Trap: restart clears the leak (timer reset), more replicas mask a deadlock, a bigger limit hides the leak until the node dies. Countermeasure: every fix must survive the withdrawal test -- the hypothesis predicts what happens when the fix is removed, and the verification plan names the metric proving the underlying growth actually stopped. Raising a limit is a stopgap only with a leak hypothesis under test.
+
+### 7.3 Config-versus-Code Confusion
+
+Trap: the image digest is identical across good and bad pods, so code is exonerated -- but a ConfigMap or env edit landed silently; Kubernetes does not restart pods on ConfigMap change unless the deployment spec references a hash of it. Countermeasure: compare runtime state, not intent: `kubectl exec <pod> -- env | sort` on canary versus stable cohorts, `kubectl diff -f <manifest>` against the live object, `helm get values` versus the repo. If drift between Git and cluster is the story, that is `gitops-troubleshooting` territory.
+
+### 7.4 Cache Poisoning of Evidence
+
+Traps:
+
+- **Prometheus staleness and restart windows:** a series dies when its pod dies; a single-scrape gauge right after a restart shows absence, not zero. Wait two scrape intervals before trusting post-change reads; aggregate by cohort rather than per-pod series that churn.
+- **Loki backfill:** an ingester or agent outage later delivers old lines; a "burst" may be arrival time, not event time. Compare log timestamp against ingestion time, or corroborate with metrics.
+- **Endpoint staleness:** kube-proxy and endpoint controllers lag scale events; brief 5xx during scale-down can be connection reuse to a terminating pod, not an app error. Check EndpointSlice object timestamps against the error window.
+- **Dashboard time drift:** a Grafana panel pinned to a stale range looks like "no spike." Regenerate with explicit `start`/`end` API queries (see `observability/grafana`).
+
+### 7.5 Goodhart on Synthetic Checks
+
+Probes targeting a load-balanced virtual IP can be routed only to healthy pods and stay green while a cohort fails. Pin a fraction of probes to specific pod IPs or use the external ingress path; disaggregate synthetics by target.
+
+### 7.6 Averages Hide Bimodality
+
+A canary at 10% traffic moves the fleet mean by almost nothing even when it is on fire. Always split comparison queries by cohort label (`track`, image digest, or `container_start_time_seconds` cohort) before concluding "no change."
+
+## 8. Worked Example: p99 Spike After Deploy
+
+Symptom: alert fires, `payments/checkout` p99 at 2.3s versus a 400ms SLO, starting 14:05.
+
+1. **Observe.** Baseline snapshot (2.1). p50 flat, p99 stepped at 14:05: tail-only pathology. `changes(container_start_time_seconds[30m])` shows 6 pods started 14:02-14:03 (deploy). Throttling flat. Log family `pool acquire timeout` jumps at 14:05.
+2. **Hypothesize.** H1: the new build defaults the DB pool to 50 (was 200), queuing under normal concurrency. Prediction: in-flight gauge on post-14:02 pods plateaus at ~50 while stable pods do not; p99 excess is wait time, not query time (downstream span durations flat in traces).
+3. **Experiment.** Canary `checkout-canary` from the new image with only the pool-size env restored to 200. Predicted: canary p99 under 400ms within 15 minutes while the main fleet stays at 2s. Rollback armed: `kubectl -n payments delete deploy/checkout-canary` (additive canary, no shared state).
+4. **Verify.** Canary p99 340ms at minute 12; stable cohort unchanged. Adjacent check: DB connection count rose 4x as predicted and stays within 120% of the pre-deploy baseline; DB CPU flat. Ramp 1 pod -> 10% -> 50% -> 100% with two-window holds. Watch 72h (SEV2). No breach.
+5. **Done.** Fix promoted; register updated with H1 confirmed and H2 (GC) rejected by flat pause histograms; procedure handed to `runbook-creator`.
+
+## 9. Cross-References
+
+- `incident-response`: incident framework, severity, roles
+- `incident-responder`: mitigation-first mode; escalation target
+- `failure-analysis`: post-containment deep analysis
+- `runbook-creator`: verified fix becomes a runbook
+- `observability`: prometheus, grafana, loki, opentelemetry guides
+- `kubernetes-troubleshooting`: node pressure, networking
+- `openshift-operations`: `oc` equivalents of commands here
+- `gitops-troubleshooting`: live-versus-repo drift
+- `hermes-s6-container-supervision`: PID 1, exit-0 loops
+- `production-readiness`: promoted-fix readiness review
+- `sre-operations`: SLO policy for watch windows

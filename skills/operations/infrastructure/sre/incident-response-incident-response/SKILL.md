@@ -1,180 +1,234 @@
 ---
 name: incident-response-incident-response
-description: "Use when working with incident response incident response"
-risk: unknown
-source: community
-date_added: "2026-02-27"
-license: CC-BY-4.0
+description: "Deep-dive reference for running the full incident lifecycle on major incidents: detection, triage, mitigation, resolution, and blameless postmortem, plus incident command structure (Incident Commander, Operations, Communications, Scribe), severity classification matrices, customer impact assessment with error-budget burn math, and communication templates with cadence rules. Use when managing a major incident end to end, running incident command for SEV1/SEV2 events, performing customer impact assessment, writing a postmortem, or when asked about incident lifecycle phases, severity re-classification, executive updates, or customer-facing notices."
+license: Apache-2.0
 ---
 
-<!-- SPDX-FileCopyrightText: 2026 Antigravity User -->
-<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+<!-- SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
 
-## Use this skill when
+# Incident Response: Extended Lifecycle Deep Dive
 
-- Working on incident response incident response tasks or workflows
-- Needing guidance, best practices, or checklists for incident response incident response
+Extended playbook for major incidents (SEV1/SEV2), companion to the core `incident-response` skill: command structure, impact math, managed communications, rigorous postmortems.
 
-## Do not use this skill when
+## When to Use This Skill
 
-- The task is unrelated to incident response incident response
-- You need a different domain or tool outside this scope
+| Skill | Scope | Reach for it when |
+| --- | --- | --- |
+| `incident-response` | Core lifecycle | Any incident; standard detect-fix-review flow |
+| `incident-responder` | Hands-on mitigation | Running rollbacks, kubectl, failovers yourself |
+| `incident-commander` | Coordination and automation | Running the bridge, delegating, automating status updates |
+| This skill | Extended deep dive | SEV1/SEV2 lifecycle gates, impact math, comms templates, postmortem discipline |
 
-## Instructions
+Supporting skills: `incident-runbook-templates` (runbooks used in mitigation), `incident-response-smart-fix` (assisted remediation), `observability` (detection signals), `failure-analysis` (Kubernetes forensics), `production-readiness` (pre-incident readiness), `sre-operations` (error budgets and steady state).
 
-- Clarify goals, constraints, and required inputs.
-- Apply relevant best practices and validate outcomes.
-- Provide actionable steps and verification.
-- If detailed examples are required, open `resources/implementation-playbook.md`.
+## Incident Lifecycle Playbook
 
-Orchestrate multi-agent incident response with modern SRE practices for rapid resolution and learning:
+Five phases with explicit entry and exit criteria. Do not skip gates under pressure; log every transition in the incident timeline.
 
-[Extended thinking: This workflow implements a comprehensive incident command system (ICS) following modern SRE principles. Multiple specialized agents collaborate through defined phases: detection/triage, investigation/mitigation, communication/coordination, and resolution/postmortem. The workflow emphasizes speed without sacrificing accuracy, maintains clear communication channels, and ensures every incident becomes a learning opportunity through blameless postmortems and systematic improvements.]
+### Phase 1: Detect
 
-## Configuration
+Signals, most reliable first: alerting rules (Prometheus/Alertmanager per `observability`), synthetic probes, support tickets, anomaly detection, human reports.
 
-### Severity Levels
-- **P0/SEV-1**: Complete outage, security breach, data loss - immediate all-hands response
-- **P1/SEV-2**: Major degradation, significant user impact - rapid response required
-- **P2/SEV-3**: Minor degradation, limited impact - standard response
-- **P3/SEV-4**: Cosmetic issues, no user impact - scheduled resolution
+Actions:
 
-### Incident Types
-- Performance degradation
-- Service outage
-- Security incident
-- Data integrity issue
-- Infrastructure failure
-- Third-party service disruption
+1. Acknowledge the alert; silence it only after acknowledgment.
+2. Open an incident record with a tracking ID (for example `INC-20260903-014`).
+3. Record the impact start time, not the alert time; the gap is your detection gap.
+4. Make an initial severity guess; refine it in triage.
 
-## Phase 1: Detection & Triage
+Entry criteria: a sustained alert breach (not a flap), or a credible human report.
+Exit criteria: incident record open, responder engaged, triage started. Suspected SEV1: within 5 minutes.
 
-### 1. Incident Detection and Classification
-- Use Task tool with subagent_type="incident-responder"
-- Prompt: "URGENT: Detect and classify incident: $ARGUMENTS. Analyze alerts from PagerDuty/Opsgenie/monitoring. Determine: 1) Incident severity (P0-P3), 2) Affected services and dependencies, 3) User impact and business risk, 4) Initial incident command structure needed. Check error budgets and SLO violations."
-- Output: Severity classification, impact assessment, incident command assignments, SLO status
-- Context: Initial alerts, monitoring dashboards, recent changes
+### Phase 2: Triage
 
-### 2. Observability Analysis
-- Use Task tool with subagent_type="observability-monitoring::observability-engineer"
-- Prompt: "Perform rapid observability sweep for incident: $ARGUMENTS. Query: 1) Distributed tracing (OpenTelemetry/Jaeger), 2) Metrics correlation (Prometheus/Grafana/DataDog), 3) Log aggregation (ELK/Splunk), 4) APM data, 5) Real User Monitoring. Identify anomalies, error patterns, and service degradation points."
-- Output: Observability findings, anomaly detection, service health matrix, trace analysis
-- Context: Severity level from step 1, affected services
+Goal: answer what is broken, who is affected, how bad.
 
-### 3. Initial Mitigation
-- Use Task tool with subagent_type="incident-responder"
-- Prompt: "Implement immediate mitigation for P$SEVERITY incident: $ARGUMENTS. Actions: 1) Traffic throttling/rerouting if needed, 2) Feature flag disabling for affected features, 3) Circuit breaker activation, 4) Rollback assessment for recent deployments, 5) Scale resources if capacity-related. Prioritize user experience restoration."
-- Output: Mitigation actions taken, temporary fixes applied, rollback decisions
-- Context: Observability findings, severity classification
+Actions:
 
-## Phase 2: Investigation & Root Cause Analysis
+1. Establish blast radius: single pod, node, zone, region, or global.
+2. Correlate with change: deploys, config, certificate rotations, and dependency releases in the last 24 hours; most incidents are change-induced.
+3. Classify severity using the matrix below.
+4. For SEV1/SEV2: page an Incident Commander, open the incident channel and bridge.
+5. Form a mitigation hypothesis; write it down even if uncertain.
 
-### 4. Deep System Debugging
-- Use Task tool with subagent_type="error-debugging::debugger"
-- Prompt: "Conduct deep debugging for incident: $ARGUMENTS using observability data. Investigate: 1) Stack traces and error logs, 2) Database query performance and locks, 3) Network latency and timeouts, 4) Memory leaks and CPU spikes, 5) Dependency failures and cascading errors. Apply Five Whys analysis."
-- Output: Root cause identification, contributing factors, dependency impact map
-- Context: Observability analysis, mitigation status
+Entry criteria: detection confirmed.
+Exit criteria: severity assigned, IC named for SEV1/SEV2, mitigation hypothesis recorded.
 
-### 5. Security Assessment
-- Use Task tool with subagent_type="security-scanning::security-auditor"
-- Prompt: "Assess security implications of incident: $ARGUMENTS. Check: 1) DDoS attack indicators, 2) Authentication/authorization failures, 3) Data exposure risks, 4) Certificate issues, 5) Suspicious access patterns. Review WAF logs, security groups, and audit trails."
-- Output: Security assessment, breach analysis, vulnerability identification
-- Context: Root cause findings, system logs
+### Phase 3: Mitigate
 
-### 6. Performance Engineering Analysis
-- Use Task tool with subagent_type="application-performance::performance-engineer"
-- Prompt: "Analyze performance aspects of incident: $ARGUMENTS. Examine: 1) Resource utilization patterns, 2) Query optimization opportunities, 3) Caching effectiveness, 4) Load balancer health, 5) CDN performance, 6) Autoscaling triggers. Identify bottlenecks and capacity issues."
-- Output: Performance bottlenecks, resource recommendations, optimization opportunities
-- Context: Debug findings, current mitigation state
+Goal: stop customer impact by the fastest safe path. Mitigation is not root-cause repair.
 
-## Phase 3: Resolution & Recovery
+Preference order: roll back the suspect change > fail over to healthy capacity > scale out > feature-flag disable > hotfix. Prefer reversible actions; log every action with a timestamp.
 
-### 7. Fix Implementation
-- Use Task tool with subagent_type="backend-development::backend-architect"
-- Prompt: "Design and implement production fix for incident: $ARGUMENTS based on root cause. Requirements: 1) Minimal viable fix for rapid deployment, 2) Risk assessment and rollback capability, 3) Staged rollout plan with monitoring, 4) Validation criteria and health checks. Consider both immediate fix and long-term solution."
-- Output: Fix implementation, deployment strategy, validation plan, rollback procedures
-- Context: Root cause analysis, performance findings, security assessment
+Entry criteria: severity assigned and hypothesis formed.
+Exit criteria: customer impact stopped or reduced below the severity threshold, verified by external signals (synthetics, customer-visible metrics), not just internal dashboards. Then hold a stability window: 30 minutes for SEV1, 15 for SEV2.
 
-### 8. Deployment and Validation
-- Use Task tool with subagent_type="deployment-strategies::deployment-engineer"
-- Prompt: "Execute emergency deployment for incident fix: $ARGUMENTS. Process: 1) Blue-green or canary deployment, 2) Progressive rollout with monitoring, 3) Health check validation at each stage, 4) Rollback triggers configured, 5) Real-time monitoring during deployment. Coordinate with incident command."
-- Output: Deployment status, validation results, monitoring dashboard, rollback readiness
-- Context: Fix implementation, current system state
+### Phase 4: Resolve
 
-## Phase 4: Communication & Coordination
+Goal: confirm root cause and land a permanent fix.
 
-### 9. Stakeholder Communication
-- Use Task tool with subagent_type="content-marketing::content-marketer"
-- Prompt: "Manage incident communication for: $ARGUMENTS. Create: 1) Status page updates (public-facing), 2) Internal engineering updates (technical details), 3) Executive summary (business impact/ETA), 4) Customer support briefing (talking points), 5) Timeline documentation with key decisions. Update every 15-30 minutes based on severity."
-- Output: Communication artifacts, status updates, stakeholder briefings, timeline log
-- Context: All previous phases, current resolution status
+Actions:
 
-### 10. Customer Impact Assessment
-- Use Task tool with subagent_type="incident-responder"
-- Prompt: "Assess and document customer impact for incident: $ARGUMENTS. Analyze: 1) Affected user segments and geography, 2) Failed transactions or data loss, 3) SLA violations and contractual implications, 4) Customer support ticket volume, 5) Revenue impact estimation. Prepare proactive customer outreach list."
-- Output: Customer impact report, SLA analysis, outreach recommendations
-- Context: Resolution progress, communication status
+1. Root-cause analysis: 5-whys, change diffing; use `failure-analysis` for Kubernetes-layer forensics.
+2. Permanent fix with regression coverage. A rollback left in place is a mitigation, not a resolution.
+3. Verify error-budget burn has returned to baseline.
 
-## Phase 5: Postmortem & Prevention
+Entry criteria: mitigation holding through the stability window.
+Exit criteria: root cause identified (or explicitly documented as unknown, with a detection-gap action item), permanent fix deployed, steady state confirmed.
 
-### 11. Blameless Postmortem
-- Use Task tool with subagent_type="documentation-generation::docs-architect"
-- Prompt: "Conduct blameless postmortem for incident: $ARGUMENTS. Document: 1) Complete incident timeline with decisions, 2) Root cause and contributing factors (systems focus), 3) What went well in response, 4) What could improve, 5) Action items with owners and deadlines, 6) Lessons learned for team education. Follow SRE postmortem best practices."
-- Output: Postmortem document, action items list, process improvements, training needs
-- Context: Complete incident history, all agent outputs
+### Phase 5: Review
 
-### 12. Monitoring and Alert Enhancement
-- Use Task tool with subagent_type="observability-monitoring::observability-engineer"
-- Prompt: "Enhance monitoring to prevent recurrence of: $ARGUMENTS. Implement: 1) New alerts for early detection, 2) SLI/SLO adjustments if needed, 3) Dashboard improvements for visibility, 4) Runbook automation opportunities, 5) Chaos engineering scenarios for testing. Ensure alerts are actionable and reduce noise."
-- Output: New monitoring configuration, alert rules, dashboard updates, runbook automation
-- Context: Postmortem findings, root cause analysis
+Goal: learn, and feed fixes back into the system.
 
-### 13. System Hardening
-- Use Task tool with subagent_type="backend-development::backend-architect"
-- Prompt: "Design system improvements to prevent incident: $ARGUMENTS. Propose: 1) Architecture changes for resilience (circuit breakers, bulkheads), 2) Graceful degradation strategies, 3) Capacity planning adjustments, 4) Technical debt prioritization, 5) Dependency reduction opportunities. Create implementation roadmap."
-- Output: Architecture improvements, resilience patterns, technical debt items, roadmap
-- Context: Postmortem action items, performance analysis
+Actions: postmortem within 48 hours for SEV1 (72 max for SEV2); action items filed with owners and deadlines; track to closure.
 
-## Success Criteria
+Entry criteria: incident resolved.
+Exit criteria: postmortem published, action items ticketed, follow-up review scheduled.
 
-### Immediate Success (During Incident)
-- Service restoration within SLA targets
-- Accurate severity classification within 5 minutes
-- Stakeholder communication every 15-30 minutes
-- No cascading failures or incident escalation
-- Clear incident command structure maintained
+## Incident Command Structure
 
-### Long-term Success (Post-Incident)
-- Comprehensive postmortem within 48 hours
-- All action items assigned with deadlines
-- Monitoring improvements deployed within 1 week
-- Runbook updates completed
-- Team training conducted on lessons learned
-- Error budget impact assessed and communicated
+Formal roles for SEV1/SEV2. One person may hold multiple roles, but never combine IC and hands-on operations during a SEV1.
 
-## Coordination Protocols
+| Role | Owns | Does not |
+| --- | --- | --- |
+| Incident Commander (IC) | Severity, priorities, escalation, go/no-go on risky actions | Hands-on debugging |
+| Operations Lead | Technical execution; directs responders | External communication |
+| Communications Lead | Status page, internal updates, executive and customer messaging; fields inbound questions | Technical decisions |
+| Scribe | Timeline log: timestamps, decisions, actions, hypothesis changes | Investigation |
 
-### Incident Command Structure
-- **Incident Commander**: Decision authority, coordination
-- **Technical Lead**: Technical investigation and resolution
-- **Communications Lead**: Stakeholder updates
-- **Subject Matter Experts**: Specific system expertise
+Small teams: two people = IC+Communications, Operations+Scribe. Solo: drop Scribe first (keep rough notes), then Communications (broadcast-only); split IC/Operations only at SEV3 or lower.
 
-### Communication Channels
-- War room (Slack/Teams channel or Zoom)
-- Status page updates (StatusPage, Statusly)
-- PagerDuty/Opsgenie for alerting
-- Confluence/Notion for documentation
+### Handoff Protocol (incidents over 4 hours or crossing timezones)
 
-### Handoff Requirements
-- Each phase provides clear context to the next
-- All findings documented in shared incident doc
-- Decision rationale recorded for postmortem
-- Timestamp all significant events
+1. Outgoing IC writes a handoff brief: current severity, active mitigations, open hypotheses, next three actions, pending communications.
+2. Fifteen-minute overlap call; walk the Scribe's timeline together.
+3. Incoming IC announces takeover in the incident channel: "I am IC as of 08:00 UTC."
+4. Update the incident record owner. The outgoing IC stays reachable for 30 minutes.
+5. Never hand off mid-action; complete or abort in-flight changes first.
 
-Production incident requiring immediate response: $ARGUMENTS
+## Severity Classification
 
-## Limitations
-- Use this skill only when the task clearly matches the scope described above.
-- Do not treat the output as a substitute for environment-specific validation, testing, or expert review.
-- Stop and ask for clarification if required inputs, permissions, safety boundaries, or success criteria are missing.
+| Severity | Customer impact | Data loss risk | SLA exposure | Revenue at risk | Response |
+| --- | --- | --- | --- | --- | --- |
+| SEV1 | >50% of users, or all of a tier; core function down | Active or unrecoverable | Breach active or imminent | >$100k/hour or contractual penalty | All hands; 15-min comms; exec notice within 1 hour |
+| SEV2 | 10-50% of users; major degradation | Potential, recoverable | Burn rate >10x | $10k-100k/hour | Dedicated team; 30-min comms; exec notice within 4 hours |
+| SEV3 | <10% of users; workaround exists | None | Burn rate 2-10x | <$10k/hour | Business hours; daily update |
+| SEV4 | Internal only; cosmetic | None | Negligible | None | Backlog; fix-forward |
+
+Classify on the worst dimension that applies; do not average across dimensions.
+
+### Re-classification Triggers
+
+Upgrade when: scope grows to new regions or segments; duration exceeds 2x the initial estimate; data loss is newly discovered; security involvement is identified; executive or major customer escalation.
+
+Downgrade when: mitigation holds through the stability window; affected traffic falls below the next threshold; impact re-scopes to workaround-available.
+
+Rules: any responder may propose; only the IC decides. Announce re-classification with the reason, exactly as the initial severity was announced. Never silently downgrade.
+
+## Customer-Impact Assessment
+
+### Affected-Segment Estimation
+
+Compute from traffic data, not guesses:
+
+1. Baseline: requests per minute per segment (region, tier, product surface) from the same hour over the last 7 days.
+2. Affected segment: error rate >5% or p99 latency >3x baseline, sustained for 5 minutes.
+3. Report as: "2 of 6 regions, approximately 22% of weekly active users, approximately 18% of request volume."
+
+### Failed-Transaction Accounting
+
+```text
+failed_tx = baseline_rpm x duration_min x (observed_error_rate - baseline_error_rate)
+```
+
+Count user-visible failures separately from internal retries that eventually succeeded; retries inflate system error counts, not customer harm. For revenue exposure, multiply failed transactions by the segment's average transaction value.
+
+### Error-Budget Burn Math
+
+A 99.9% SLO over 30 days yields a 0.1% error budget: 43.2 minutes of full-outage equivalent, or the corresponding failed-request count.
+
+```text
+burn_rate = observed_error_ratio / budget_ratio
+```
+
+Burn rate 1 consumes the budget exactly at month end. Page on fast burn (~14x over 1 hour); ticket on slow burn (~2x over 3 days).
+
+Worked example:
+
+- Service SLO: 99.9%; traffic: 2.0M requests/day (60M per 30-day month).
+- Budget: 0.001 x 60,000,000 = 60,000 failed requests per month.
+- Incident: 45 minutes; affected region carries 40% of traffic; 85% error rate there.
+- Requests in window: 2,000,000 / 1440 x 45 = 62,500 total; affected: 62,500 x 0.40 = 25,000.
+- Failed: 25,000 x 0.85 = 21,250.
+- Budget consumed: 21,250 / 60,000 = 35.4% of the monthly budget in 45 minutes.
+- Burn rate: global error ratio in the window is 21,250 / 62,500 = 0.34 vs. budgeted 0.001, so 340x.
+- Projection: at this rate the full budget exhausts in about 127 minutes. This is a paging incident, not a ticket.
+
+## Communication
+
+Cadence rules:
+
+| Severity | Internal channel | Status page | Executive | Customer-facing |
+| --- | --- | --- | --- | --- |
+| SEV1 | Every 15 min | Every 30 min | Within 1 hour, then hourly | Within 30 min of confirmation |
+| SEV2 | Every 30 min | Hourly | Within 4 hours | Within 2 hours |
+| SEV3 | Daily | On resolution | Weekly digest | On request |
+| SEV4 | On resolution | None | None | None |
+
+Always hit the promised cadence, even if the update is "no change" -- silence reads as loss of control. State what you know, what you do not, and when the next update arrives. Never speculate externally on root cause; never name individuals or vendors.
+
+### Internal Status Template
+
+```text
+[INC-20260903-014] SEV2 - Payments API elevated errors
+Status: Mitigating
+Impact: ~18% of checkout requests failing in us-east; other regions normal
+Started: 14:02 UTC | Detected: 14:06 UTC | IC: j.smith
+Current action: rolling back release 1.42.7 (suspected cause)
+Next update: 15:00 UTC or on material change
+```
+
+### Executive Update Template
+
+```text
+Subject: SEV2 - Payments API - impact contained, resolution in progress
+What happened: Release 1.42.7 introduced a connection-pool regression at 14:02 UTC.
+Customer impact: ~4,200 customers; est. 21,250 failed transactions; ~$48k revenue at risk.
+Current state: Rollback 80% complete; error rate falling.
+Next steps: Complete rollback, verify, root-cause analysis, postmortem within 48 hours.
+ETA to resolution: 16:00 UTC | Next update: 15:30 UTC
+Business risk: SLA credit exposure est. $12k; no renewal-risk accounts affected.
+```
+
+### Customer-Facing Notice Template
+
+```text
+Title: Elevated error rates on Payments API (US East)
+We are investigating elevated error rates affecting payment processing in the US East
+region since 14:02 UTC. Affected customers may see failed checkout attempts. No data
+has been lost. A fix is being deployed now. Next update by 15:30 UTC.
+```
+
+Reference the status page and incident channel via environment variables (for example `STATUS_PAGE_URL`, `INCIDENT_CHANNEL`); never hardcode URLs in templates.
+
+## Postmortem
+
+Blameless structure, in this order:
+
+1. Summary: three sentences -- what happened, the quantified impact, how it was resolved.
+2. Impact: users and segments affected, failed transactions, budget burned, SLA credits (from the assessment above).
+3. Timeline: UTC timestamps from the Scribe log; include detection gap (impact start to detection) and time to mitigate.
+4. Root cause and contributing factors: the technical cause plus process and environment factors that enabled it. Never stop at "human error"; ask why the system allowed the action.
+5. What went well: detection speed, rollback automation, communication discipline.
+6. What went poorly: gaps, delays, lucky escapes.
+7. Action items: table with ID, action, type (prevent / detect / mitigate / process), owner (a named individual, never a team), deadline, and priority.
+8. Where we got lucky: near-misses that did not produce impact this time.
+
+### Follow-Up Tracking Discipline
+
+- File every action item as a ticket before the postmortem is published; link each from the document.
+- Suggested deadlines: detection improvements 14 days, prevention 30 days, documentation 7 days.
+- Review open items weekly until closed; escalate items slipping more than two weeks.
+- Track recurrence: the same root-cause class within 90 days is an action-item process failure; re-open the review.
+- Feed MTTD, MTTR, and recurrence metrics back into `sre-operations` reliability reviews.

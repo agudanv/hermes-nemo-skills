@@ -3,7 +3,7 @@
 
 # Skill Catalog
 
-This index covers the reviewed `skills/` tree: 296 active skill directories.
+This index covers the reviewed `skills/` tree: 297 active skill directories.
 
 ## Top-Level Categories
 
@@ -36,7 +36,7 @@ The active skill directories are organized beside canonical skills:
 - `skills/operations/devops/ci-cd/`: Argo CD, GitOps, secrets, and delivery pipelines.
 - `skills/operations/devops/` (remainder): infrastructure automation, foundations, documentation, and general DevOps practice.
 - `skills/operations/devops/docker/`: container fundamentals and Docker workflows.
-- `skills/operations/infrastructure/kubernetes/`: Kubernetes fundamentals, platform automation, failure analysis, gitops, manifests, security, networking, and the first-party `cluster-security-audit`/`gitops-troubleshooting` replacements.
+- `skills/operations/infrastructure/kubernetes/`: Kubernetes fundamentals, platform automation, failure analysis, gitops, manifests, security, networking, and the first-party `cluster-security-audit`/`gitops-troubleshooting`/`kubernetes-architect`/`kubernetes-deployment` replacements.
 - `skills/operations/infrastructure/sre/`: reliability and infrastructure coordination, including the observability stack (metrics, logs, traces, Grafana, Loki, OpenTelemetry, Prometheus, SLOs).
 - `skills/operations/infrastructure/` (remainder): Terraform, Helm, Ansible, service mesh, Vault, and adjacent platform tooling.
 - `skills/operations/misc/shell/`: shell quality checks, defensive scripting, and prompt configuration.

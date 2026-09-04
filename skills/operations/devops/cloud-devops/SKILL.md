@@ -1,240 +1,159 @@
 ---
 name: cloud-devops
-description: "Cloud infrastructure and DevOps workflow covering AWS, Azure, GCP, Kubernetes, Terraform, CI/CD, monitoring, and cloud-native development."
-category: workflow-bundle
-risk: safe
-source: personal
-date_added: "2026-02-27"
-license: CC-BY-4.0
+description: "Orchestrates cloud and DevOps engagements across AWS, Azure, and GCP: assesses a request, designs the target architecture, provisions infrastructure with Terraform, wires CI/CD, and hands off steady-state operations. Provides cloud authentication via environment variables, read-only discovery guardrails, IaC state hygiene rules, tagging standards, budget alerting, and a per-provider command cheat-sheet, then routes detailed work to specialized sibling skills. Use when working on cloud infrastructure, DevOps workflow design, AWS/Azure/GCP environments, Terraform provisioning, CI/CD pipelines, monitoring and observability rollout, or cloud-native development practices."
+license: Apache-2.0
 ---
 
-<!-- SPDX-FileCopyrightText: 2026 Antigravity User -->
-<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+<!-- SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
 
+# Cloud DevOps
 
-# Cloud/DevOps Workflow Bundle
+Entry point for cloud and DevOps engagements. This skill assesses an incoming request, places it in the delivery lifecycle, applies the guardrails below, and routes deep work to the sibling skill that owns the detail. Prefer routing over re-deriving: if a sibling covers the concern, hand off with a crisp scope statement and the assess-phase findings.
 
-## Overview
+## Operating Model
 
-Comprehensive cloud and DevOps workflow for infrastructure provisioning, container orchestration, CI/CD pipelines, monitoring, and cloud-native application development.
+Move through five phases; start where the request actually is and pull in earlier phases only when a prerequisite is missing.
 
-## When to Use This Workflow
-
-Use this workflow when:
-- Setting up cloud infrastructure
-- Implementing CI/CD pipelines
-- Deploying Kubernetes applications
-- Configuring monitoring and observability
-- Managing cloud costs
-- Implementing DevOps practices
-
-## Workflow Phases
-
-### Phase 1: Cloud Infrastructure Setup
-
-#### Skills to Invoke
-- `cloud-architect` - Cloud architecture
-- `aws-skills` - AWS development
-- `azure-functions` - Azure development
-- `gcp-cloud-run` - GCP development
-- `terraform-skill` - Terraform IaC
-- `terraform-specialist` - Advanced Terraform
-
-#### Actions
-1. Design cloud architecture
-2. Set up accounts and billing
-3. Configure networking
-4. Provision resources
-5. Set up IAM
-
-#### Copy-Paste Prompts
-```
-Use @cloud-architect to design multi-cloud architecture
+```text
+assess -> design -> provision -> CI/CD -> operate
 ```
 
-```
-Use @terraform-skill to provision AWS infrastructure
-```
+| Phase | Goal | Exit criteria |
+| ------- | ------ | --------------- |
+| assess | Understand current state and constraints | Inventory of accounts/subscriptions/projects, existing resources, drift risks, problem statement |
+| design | Produce target architecture and delivery plan | Written topology, network/identity/data decisions, cost estimate, rollback strategy |
+| provision | Create or change infrastructure declaratively | `terraform plan` reviewed and applied; state remote and locked; tags applied |
+| CI/CD | Automate build, test, and release | Pipeline green from commit to environment; rollback path exercised once |
+| operate | Run, observe, and improve the service | Dashboards and alerts live; runbooks written; incident path tested |
 
-### Phase 2: Container Orchestration
+Phase essentials:
 
-#### Skills to Invoke
-- `kubernetes-architect` - Kubernetes architecture
-- `docker-expert` - Docker containerization
-- `helm-chart-scaffolding` - Helm charts
-- `k8s-manifest-generator` - K8s manifests
-- `k8s-security-policies` - K8s security
+- assess: run read-only discovery first (cheat-sheet below); confirm target account/subscription/project before touching anything; identify state sources of truth (Terraform workspaces, Helm releases, GitOps repos, manual resources); record constraints such as data residency, compliance, and landing-zone policies.
+- design: prefer managed services and federated identity (OIDC/workload identity) over static keys; plan CIDRs to avoid peer overlap; use private endpoints for data services; attach the budget alert at design time, not after the first surprise invoice.
+- provision: every change through Terraform (or approved IaC); plan out to a file and apply exactly that file; second-reader review of plans on shared environments; console/CLI mutations are break-glass only, documented afterward.
+- CI/CD: pipelines as code; secrets via the CI secret store or OIDC federation, never committed; each pipeline covers lint, test, build, scan, non-prod deploy, smoke test, gated promotion; rollback is a pipeline job, not a manual procedure.
+- operate: golden signals (latency, traffic, errors, saturation) instrumented before production; alerts page on user impact, not raw resource metrics; runbooks for the top five failure modes; post-incident reviews feed back into design and provisioning.
 
-#### Actions
-1. Design container architecture
-2. Create Dockerfiles
-3. Build container images
-4. Write K8s manifests
-5. Deploy to cluster
-6. Configure networking
+## Phase-to-Skill Routing
 
-#### Copy-Paste Prompts
-```
-Use @kubernetes-architect to design K8s architecture
-```
+| Concern | Route to |
+| --------- | ---------- |
+| Container image hardening, slimming, security, multi-stage optimization | `docker-expert` |
+| Dockerfile basics, first container builds, container concepts | `docker` (container-fundamentals) |
+| Local multi-container development, Compose topologies | `docker-patterns` |
+| Kubernetes cluster and platform design, tenancy, networking decisions | `kubernetes-architect` |
+| Kubernetes deploy workflows, manifests, Helm releases, rollouts | `kubernetes-deployment` |
+| Release strategies: blue/green, canary, rolling, feature flags | `deployment-patterns` |
+| Day-2 operational practices: branching, environments, code review, automation culture | `practices` |
+| Structured ramp-up for engineers new to DevOps | `devops-learning-path` |
+| GitOps drift, Argo CD sync failures, reconciliation loops | `gitops-troubleshooting` |
+| Active incidents, triage, mitigation, post-incident follow-up | `incident-responder` |
 
-```
-Use @docker-expert to containerize application
-```
+If a request spans multiple rows, sequence handoffs in phase order (provision before CI/CD before operate) and keep this skill as the coordinating thread.
 
-```
-Use @helm-chart-scaffolding to create Helm chart
-```
+## Cloud Authentication
 
-### Phase 3: CI/CD Implementation
+Authenticate through environment variables only. Never embed credentials in code, Terraform variable files, pipeline YAML, or skill output; reference variable names, never secret values.
 
-#### Skills to Invoke
-- `deployment-engineer` - Deployment engineering
-- `cicd-automation-workflow-automate` - CI/CD automation
-- `github-actions-templates` - GitHub Actions
-- `gitlab-ci-patterns` - GitLab CI
-- `deployment-pipeline-design` - Pipeline design
+| Provider | Variables | Notes |
+| ---------- | ----------- | ------- |
+| AWS | `AWS_PROFILE`, `AWS_REGION` | Prefer SSO (`aws sso login --profile "$AWS_PROFILE"`) or OIDC-assumed roles over static key pairs |
+| Azure | `ARM_SUBSCRIPTION_ID`, plus `ARM_CLIENT_ID` / `ARM_TENANT_ID` / `ARM_CLIENT_SECRET` for Terraform service principals | Interactive: `az login`; CI: workload identity federation |
+| GCP | `GOOGLE_APPLICATION_CREDENTIALS` (service-account key file), or ADC from `gcloud auth application-default login` | Prefer workload identity or attached service accounts on GCE/GKE |
 
-#### Actions
-1. Design deployment pipeline
-2. Configure build automation
-3. Set up test automation
-4. Configure deployment stages
-5. Implement rollback strategies
-6. Set up notifications
+Pre-flight identity check before any provider command:
 
-#### Copy-Paste Prompts
-```
-Use @cicd-automation-workflow-automate to set up CI/CD pipeline
+```bash
+aws sts get-caller-identity                       # AWS: identity + account
+az account show --output table                    # Azure: active subscription
+gcloud auth list --filter=status:ACTIVE           # GCP: active account
+gcloud config get-value project                   # GCP: active project
 ```
 
-```
-Use @github-actions-templates to create GitHub Actions workflow
-```
+If the identity does not match the engagement's target environment, stop and fix the environment selection before running anything else.
 
-### Phase 4: Monitoring and Observability
+## Guardrails
 
-#### Skills to Invoke
-- `observability-engineer` - Observability engineering
-- `grafana-dashboards` - Grafana dashboards
-- `prometheus-configuration` - Prometheus setup
-- `datadog-automation` - Datadog integration
-- `sentry-automation` - Sentry error tracking
+### Read-only discovery first
 
-#### Actions
-1. Design monitoring strategy
-2. Set up metrics collection
-3. Configure log aggregation
-4. Implement distributed tracing
-5. Create dashboards
-6. Set up alerts
+- Open every engagement with read-only calls: `aws ... describe-*` / `list-*`, `az ... show` / `list`, `gcloud ... describe` / `list`. No create, update, or delete in the assess phase.
+- Scope discovery with `--query` / `--filter` to the resources, groups, or tags in scope; avoid dumping entire accounts into context.
 
-#### Copy-Paste Prompts
-```
-Use @observability-engineer to set up observability stack
-```
+### Plan before apply
 
-```
-Use @grafana-dashboards to create monitoring dashboards
-```
+- Terraform changes follow `init -> fmt -> validate -> plan -> review -> apply`; save the plan (`terraform plan -out=tfplan`) and apply exactly that file, never a silently re-planned change.
+- An agent may produce the plan; on shared environments a human approves it. `-target` is emergency-only, reconciled with a full plan immediately afterward.
 
-### Phase 5: Cloud Security
+### State file hygiene
 
-#### Skills to Invoke
-- `cloud-penetration-testing` - Cloud pentesting
-- `aws-penetration-testing` - AWS security
-- `k8s-security-policies` - K8s security
-- `secrets-management` - Secrets management
-- `mtls-configuration` - mTLS setup
+- Remote state with locking from day one: S3 (+ DynamoDB or native lockfile), Azure Storage with blob lease locking, or GCS with object versioning.
+- Never commit `terraform.tfstate`, `*.tfstate.backup`, or crash logs; keep them in `.gitignore`. Never hand-edit state; use `terraform state mv` / `rm` / `import` and record the operation in the change ticket.
+- One state per environment per component; monolithic states make every plan slow and every apply high-blast-radius. Encrypt the backend and restrict access to the CI role plus break-glass admins; state can contain sensitive values.
 
-#### Actions
-1. Assess cloud security
-2. Configure security groups
-3. Set up secrets management
-4. Implement network policies
-5. Configure encryption
-6. Set up audit logging
+### Budget alerts
 
-#### Copy-Paste Prompts
-```
-Use @cloud-penetration-testing to assess cloud security
-```
+- Create or verify a budget before provisioning new spend: AWS Budgets (actual + forecast), Azure Cost Management budgets, GCP Budgets.
+- Standard thresholds: 50%, 80%, 100% of monthly budget, plus a forecasted-spend alert at 100%, routed to a monitored channel.
 
-```
-Use @secrets-management to configure secrets
-```
+### Tagging standards
 
-### Phase 6: Cost Optimization
+Apply to every taggable resource; enforce with policy (AWS SCP/tag policies, Azure Policy, GCP organization policy) where available:
 
-#### Skills to Invoke
-- `cost-optimization` - Cloud cost optimization
-- `database-cloud-optimization-cost-optimize` - Database cost optimization
+| Tag | Example | Purpose |
+| ----- | --------- | --------- |
+| `environment` | `dev`, `staging`, `prod` | Blast radius and cost slicing |
+| `owner` | team or distribution list | Accountability and orphan cleanup |
+| `cost-center` | finance code | Chargeback |
+| `managed-by` | `terraform`, `helm`, `manual` | Drift detection; manual resources get reconciled or imported |
+| `application` | service name | Dependency mapping |
 
-#### Actions
-1. Analyze cloud spending
-2. Identify optimization opportunities
-3. Right-size resources
-4. Implement auto-scaling
-5. Use reserved instances
-6. Set up cost alerts
+Untagged resources in shared accounts count as drift; report them during assess.
 
-#### Copy-Paste Prompts
-```
-Use @cost-optimization to reduce cloud costs
-```
-
-### Phase 7: Disaster Recovery
-
-#### Skills to Invoke
-- `incident-responder` - Incident response
-- `incident-runbook-templates` - Runbook creation
-- `postmortem-writing` - Postmortem documentation
-
-#### Actions
-1. Design DR strategy
-2. Set up backups
-3. Create runbooks
-4. Test failover
-5. Document procedures
-6. Train team
-
-#### Copy-Paste Prompts
-```
-Use @incident-runbook-templates to create runbooks
-```
-
-## Cloud Provider Workflows
+## Provider Cheat-Sheet (Read-Only)
 
 ### AWS
-```
-Skills: aws-skills, aws-serverless, aws-penetration-testing
-Services: EC2, Lambda, S3, RDS, ECS, EKS
+
+```bash
+aws sts get-caller-identity
+aws ec2 describe-regions --output table
+aws ec2 describe-instances --filters Name=instance-state-name,Values=running
+aws rds describe-db-instances
+aws s3api list-buckets
+aws iam list-roles --max-items 50
+aws eks list-clusters
+aws ce get-cost-and-usage --time-period Start=2026-08-01,End=2026-09-01 \
+  --granularity MONTHLY --metrics UnblendedCost
+aws cloudwatch describe-alarms --state-value ALARM
 ```
 
 ### Azure
-```
-Skills: azure-functions, azure-ai-projects-py, azure-monitor-opentelemetry-py
-Services: Functions, App Service, AKS, Cosmos DB
+
+```bash
+az account show --output table
+az account list-locations --output table
+az vm list --output table
+az aks list --output table
+az network vnet list --output table
+az role assignment list --all --output table
+az consumption budget list
+az monitor metrics alert list --output table
 ```
 
 ### GCP
+
+```bash
+gcloud auth list --filter=status:ACTIVE
+gcloud config get-value project
+gcloud compute regions list
+gcloud compute instances list
+gcloud container clusters list
+gcloud sql instances list
+gcloud projects get-iam-policy "$(gcloud config get-value project)"
+gcloud billing budgets list --billing-account="$BILLING_ACCOUNT_ID"
+gcloud logging read "severity>=ERROR" --limit=20 --freshness=1h
 ```
-Skills: gcp-cloud-run
-Services: Cloud Run, GKE, Cloud Functions, BigQuery
-```
 
-## Quality Gates
+## Tooling Notes
 
-- [ ] Infrastructure provisioned
-- [ ] CI/CD pipeline working
-- [ ] Monitoring configured
-- [ ] Security measures in place
-- [ ] Cost optimization applied
-- [ ] DR procedures documented
-
-## Related Workflow Bundles
-
-- `development` - Application development
-- `security-audit` - Security testing
-- `database` - Database operations
-- `testing-qa` - Testing workflows
+Install tools with pinned versions only (`apt-get install -y terraform=<version>`, `pip install azure-cli==<version>`); never pipe remote install scripts into a shell. Verify tool versions before starting an engagement. All examples assume a Linux shell.

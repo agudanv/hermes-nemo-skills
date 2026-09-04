@@ -1,218 +1,226 @@
 ---
 name: incident-responder
-description: Expert SRE incident responder specializing in rapid problem resolution, modern observability, and comprehensive incident management.
-risk: unknown
-source: community
-date_added: '2026-02-27'
-license: CC-BY-4.0
+description: "Hands-on rapid incident response and mitigation for Kubernetes and cloud services: severity triage (P0-P3), a first-15-minutes checklist, a choose-one mitigation playbook (rollback, scale out, circuit-break, traffic shift, restart with cause capture), evidence capture for postmortems, and status communication cadence. Use when production is down, you suspect an outage, you need to mitigate an incident fast, during rapid response to alerts, or when investigating service degradation."
+license: Apache-2.0
 ---
 
-<!-- SPDX-FileCopyrightText: 2026 Antigravity User -->
-<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+<!-- SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
 
-## Use this skill when
+# Incident Responder
 
-- Working on incident responder tasks or workflows
-- Needing guidance, best practices, or checklists for incident responder
+Operational playbook for the mitigation phase of an incident: restore service first, understand root cause second, preserve evidence throughout. Commands assume `kubectl` against the affected cluster.
 
-## Do not use this skill when
+Escalation chain across sibling skills: investigate with `incident-response` -> mitigate with `incident-responder` (this skill) -> coordinate with `incident-commander` -> institutionalize with `incident-runbook-templates` / `runbook-creator`.
 
-- The task is unrelated to incident responder
-- You need a different domain or tool outside this scope
+## Severity Triage Matrix
 
-## Instructions
+Classify before acting: severity drives response time, cadence, and who gets paged. When in doubt, take the higher severity; downgrading is cheap, late escalation is not.
 
-- Clarify goals, constraints, and required inputs.
-- Apply relevant best practices and validate outcomes.
-- Provide actionable steps and verification.
-- If detailed examples are required, open `resources/implementation-playbook.md`.
+| Severity | User impact | Scope | Examples | Response expectation |
+| ---------- | ------------- | ------- | ---------- | ---------------------- |
+| P0 | Total outage or data loss; no workaround | All or most users, or a contractual-availability customer | Cluster-wide outage; database unreachable; data corruption in progress; security breach | Page immediately; all hands; mitigation starts within 5 min; execs notified within 30 min |
+| P1 | Major function degraded; painful workaround or none | Significant subset of users or one critical journey | Checkout errors at 20%; p99 latency 10x SLO; one region down | Page on-call; mitigation starts within 15 min; updates every 30 min |
+| P2 | Degraded experience; workaround exists | Limited subset, or internal users only | One replica failing behind a healthy pool; stalled batch job; low-traffic 5xx | Acknowledge in business hours; mitigate within 4 h; updates every 2 h |
+| P3 | Minor or cosmetic; no user-visible impact | Single component, easily routed around | Stale dashboard panel; idle canary crashlooping; disk at 70% with slow growth | Ticket, not a page; fix within the sprint |
 
-You are an incident response specialist with comprehensive Site Reliability Engineering (SRE) expertise. When activated, you must act with urgency while maintaining precision and following modern incident management best practices.
+Triage in order: users affected? -> fraction of traffic or tenants? -> self-worsening? -> workaround or failover?
 
-## Purpose
-Expert incident responder with deep knowledge of SRE principles, modern observability, and incident management frameworks. Masters rapid problem resolution, effective communication, and comprehensive post-incident analysis. Specializes in building resilient systems and improving organizational incident response capabilities.
+## First 15 Minutes Checklist
 
-## Immediate Actions (First 5 minutes)
+Execute in order; do not skip the timeline.
 
-### 1. Assess Severity & Impact
-- **User impact**: Affected user count, geographic distribution, user journey disruption
-- **Business impact**: Revenue loss, SLA violations, customer experience degradation
-- **System scope**: Services affected, dependencies, blast radius assessment
-- **External factors**: Peak usage times, scheduled events, regulatory implications
+1. **Declare the incident.** State it in the incident channel: severity, one-line summary, responder name. Declaration unlocks authority for disruptive action.
+2. **Assign roles.** Even with two people: one Incident Commander (coordinates, communicates) and one Operator (types commands). Hand coordination to `incident-commander` if it outgrows one channel.
+3. **Start the timeline.** Append-only with UTC timestamps, one line per command, observation, and decision.
+4. **Snapshot current state before changing anything.** Run the capture block below; save output to durable storage outside the cluster.
+5. **Check the obvious.** Recent deploys, config changes, feature-flag flips in the last 2 hours. Most incidents are change-induced.
+6. **Pick exactly one mitigation** from the playbook; do not stack.
 
-### 2. Establish Incident Command
-- **Incident Commander**: Single decision-maker, coordinates response
-- **Communication Lead**: Manages stakeholder updates and external communication
-- **Technical Lead**: Coordinates technical investigation and resolution
-- **War room setup**: Communication channels, video calls, shared documents
+State capture block (run once, save everything):
 
-### 3. Immediate Stabilization
-- **Quick wins**: Traffic throttling, feature flags, circuit breakers
-- **Rollback assessment**: Recent deployments, configuration changes, infrastructure changes
-- **Resource scaling**: Auto-scaling triggers, manual scaling, load redistribution
-- **Communication**: Initial status page update, internal notifications
+```bash
+# Cluster and node health
+kubectl get nodes -o wide
+kubectl top nodes 2>/dev/null || true
 
-## Modern Investigation Protocol
+# Workload state, affected namespace
+NS=affected-namespace
+kubectl -n "$NS" get pods -o wide
+kubectl -n "$NS" get deploy,sts,ds,svc,ingress,hpa,pdb
 
-### Observability-Driven Investigation
-- **Distributed tracing**: OpenTelemetry, Jaeger, Zipkin for request flow analysis
-- **Metrics correlation**: Prometheus, Grafana, DataDog for pattern identification
-- **Log aggregation**: ELK, Splunk, Loki for error pattern analysis
-- **APM analysis**: Application performance monitoring for bottleneck identification
-- **Real User Monitoring**: User experience impact assessment
+# Recent events, sorted by time
+kubectl -n "$NS" get events --sort-by=.lastTimestamp | tail -n 50
 
-### SRE Investigation Techniques
-- **Error budgets**: SLI/SLO violation analysis, burn rate assessment
-- **Change correlation**: Deployment timeline, configuration changes, infrastructure modifications
-- **Dependency mapping**: Service mesh analysis, upstream/downstream impact assessment
-- **Cascading failure analysis**: Circuit breaker states, retry storms, thundering herds
-- **Capacity analysis**: Resource utilization, scaling limits, quota exhaustion
+# Restart and crash signals
+kubectl -n "$NS" get pods --field-selector=status.phase!=Running
+kubectl -n "$NS" get pods -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.status.containerStatuses[*].restartCount}{"\n"}{end}'
 
-### Advanced Troubleshooting
-- **Chaos engineering insights**: Previous resilience testing results
-- **A/B test correlation**: Feature flag impacts, canary deployment issues
-- **Database analysis**: Query performance, connection pools, replication lag
-- **Network analysis**: DNS issues, load balancer health, CDN problems
-- **Security correlation**: DDoS attacks, authentication issues, certificate problems
+# Live resource pressure
+kubectl top pods -n "$NS" 2>/dev/null || true
+```
 
-## Communication Strategy
+## Mitigation Playbook (Choose One)
 
-### Internal Communication
-- **Status updates**: Every 15 minutes during active incident
-- **Technical details**: For engineering teams, detailed technical analysis
-- **Executive updates**: Business impact, ETA, resource requirements
-- **Cross-team coordination**: Dependencies, resource sharing, expertise needed
+Pick the single most likely mitigation. Stacking destroys attribution: you will not know which one worked or what to learn.
 
-### External Communication
-- **Status page updates**: Customer-facing incident status
-- **Support team briefing**: Customer service talking points
-- **Customer communication**: Proactive outreach for major customers
-- **Regulatory notification**: If required by compliance frameworks
+| If the trigger is... | Mitigation | Why this one |
+| ---------------------- | ------------ | -------------- |
+| A deploy within the last 2 h correlates with symptoms | Rollback deploy | Fastest known-good state |
+| Load-driven saturation: CPU/mem at limit, HPA maxed, queue growing | Scale out | Adds capacity without changing code |
+| A single dependency or new code path is failing | Circuit-break / feature flag | Removes the poison path without a deploy |
+| One node, zone, or ingress path is bad | Traffic shift / drain | Removes the sick unit |
+| Wedged process, deadlock, leaked connections | Restart with cause capture | Clears runtime state, but only after evidence is taken |
 
-### Documentation Standards
-- **Incident timeline**: Detailed chronology with timestamps
-- **Decision rationale**: Why specific actions were taken
-- **Impact metrics**: User impact, business metrics, SLA violations
-- **Communication log**: All stakeholder communications
+### Option A: Rollback deploy
 
-## Resolution & Recovery
+```bash
+# Roll back to the previous revision
+kubectl -n "$NS" rollout undo deployment/<name>
 
-### Fix Implementation
-1. **Minimal viable fix**: Fastest path to service restoration
-2. **Risk assessment**: Potential side effects, rollback capability
-3. **Staged rollout**: Gradual fix deployment with monitoring
-4. **Validation**: Service health checks, user experience validation
-5. **Monitoring**: Enhanced monitoring during recovery phase
+# Or pin to a specific known-good revision
+kubectl -n "$NS" rollout undo deployment/<name> --to-revision=<N>
 
-### Recovery Validation
-- **Service health**: All SLIs back to normal thresholds
-- **User experience**: Real user monitoring validation
-- **Performance metrics**: Response times, throughput, error rates
-- **Dependency health**: Upstream and downstream service validation
-- **Capacity headroom**: Sufficient capacity for normal operations
+# Watch until complete
+kubectl -n "$NS" rollout status deployment/<name> --timeout=300s
+```
 
-## Post-Incident Process
+Verification: error rate and latency return to the pre-deploy baseline within 5 min; `kubectl -n "$NS" get pods` shows the old image tag fully rolled out.
 
-### Immediate Post-Incident (24 hours)
-- **Service stability**: Continued monitoring, alerting adjustments
-- **Communication**: Resolution announcement, customer updates
-- **Data collection**: Metrics export, log retention, timeline documentation
-- **Team debrief**: Initial lessons learned, emotional support
+### Option B: Scale out
 
-### Blameless Post-Mortem
-- **Timeline analysis**: Detailed incident timeline with contributing factors
-- **Root cause analysis**: Five whys, fishbone diagrams, systems thinking
-- **Contributing factors**: Human factors, process gaps, technical debt
-- **Action items**: Prevention measures, detection improvements, response enhancements
-- **Follow-up tracking**: Action item completion, effectiveness measurement
+```bash
+# Manual scale past the HPA ceiling
+kubectl -n "$NS" scale deployment/<name> --replicas=<N>
 
-### System Improvements
-- **Monitoring enhancements**: New alerts, dashboard improvements, SLI adjustments
-- **Automation opportunities**: Runbook automation, self-healing systems
-- **Architecture improvements**: Resilience patterns, redundancy, graceful degradation
-- **Process improvements**: Response procedures, communication templates, training
-- **Knowledge sharing**: Incident learnings, updated documentation, team training
+# Stop the HPA fighting the manual scale
+kubectl -n "$NS" patch hpa <name> --type merge -p '{"spec":{"minReplicas":<N>}}'
+```
 
-## Modern Severity Classification
+Verification: `kubectl top pods -n "$NS"` shows per-pod CPU/memory dropping; queue depth and p99 latency trend down within 5-10 min. Check `kubectl describe nodes | grep -A5 Allocated` for headroom first.
 
-### P0 - Critical (SEV-1)
-- **Impact**: Complete service outage or security breach
-- **Response**: Immediate, 24/7 escalation
-- **SLA**: < 15 minutes acknowledgment, < 1 hour resolution
-- **Communication**: Every 15 minutes, executive notification
+### Option C: Circuit-break / feature flag
 
-### P1 - High (SEV-2)
-- **Impact**: Major functionality degraded, significant user impact
-- **Response**: < 1 hour acknowledgment
-- **SLA**: < 4 hours resolution
-- **Communication**: Hourly updates, status page update
+```bash
+# Flip the flag; configmap example when no flag service exists
+kubectl -n "$NS" patch configmap <flags-cm> --type merge -p '{"data":{"FEATURE_X_ENABLED":"false"}}'
 
-### P2 - Medium (SEV-3)
-- **Impact**: Minor functionality affected, limited user impact
-- **Response**: < 4 hours acknowledgment
-- **SLA**: < 24 hours resolution
-- **Communication**: As needed, internal updates
+# Restart consumers if config is read at boot
+kubectl -n "$NS" rollout restart deployment/<name>
+```
 
-### P3 - Low (SEV-4)
-- **Impact**: Cosmetic issues, no user impact
-- **Response**: Next business day
-- **SLA**: < 72 hours resolution
-- **Communication**: Standard ticketing process
+Verification: calls to the failing dependency drop to zero in metrics; user-facing error rate falls toward the defined fallback (degraded but up).
 
-## SRE Best Practices
+### Option D: Traffic shift / drain
 
-### Error Budget Management
-- **Burn rate analysis**: Current error budget consumption
-- **Policy enforcement**: Feature freeze triggers, reliability focus
-- **Trade-off decisions**: Reliability vs. velocity, resource allocation
+```bash
+# Cordon the suspect node
+kubectl cordon <node>
 
-### Reliability Patterns
-- **Circuit breakers**: Automatic failure detection and isolation
-- **Bulkhead pattern**: Resource isolation to prevent cascading failures
-- **Graceful degradation**: Core functionality preservation during failures
-- **Retry policies**: Exponential backoff, jitter, circuit breaking
+# Drain gracefully, honoring PDBs
+kubectl drain <node> --ignore-daemonsets --delete-emptydir-data --grace-period=60
 
-### Continuous Improvement
-- **Incident metrics**: MTTR, MTTD, incident frequency, user impact
-- **Learning culture**: Blameless culture, psychological safety
-- **Investment prioritization**: Reliability work, technical debt, tooling
-- **Training programs**: Incident response, on-call best practices
+# For a zonal shift: scale down the bad zone or pull it from the
+# load balancer / ingress backend pool per your platform's mechanism
+```
 
-## Modern Tools & Integration
+Verification: pods reschedule onto healthy nodes and reach Ready; health checks from the load balancer pass; per-node or per-zone error contribution disappears from dashboards.
 
-### Incident Management Platforms
-- **PagerDuty**: Alerting, escalation, response coordination
-- **Opsgenie**: Incident management, on-call scheduling
-- **ServiceNow**: ITSM integration, change management correlation
-- **Slack/Teams**: Communication, chatops, automated updates
+### Option E: Restart with cause capture
 
-### Observability Integration
-- **Unified dashboards**: Single pane of glass during incidents
-- **Alert correlation**: Intelligent alerting, noise reduction
-- **Automated diagnostics**: Runbook automation, self-service debugging
-- **Incident replay**: Time-travel debugging, historical analysis
+Capture why the process wedged before restarting, or the postmortem dies here.
 
-## Behavioral Traits
-- Acts with urgency while maintaining precision and systematic approach
-- Prioritizes service restoration over root cause analysis during active incidents
-- Communicates clearly and frequently with appropriate technical depth for audience
-- Documents everything for learning and continuous improvement
-- Follows blameless culture principles focusing on systems and processes
-- Makes data-driven decisions based on observability and metrics
-- Considers both immediate fixes and long-term system improvements
-- Coordinates effectively across teams and maintains incident command structure
-- Learns from every incident to improve system reliability and response processes
+```bash
+# Previous logs before they rotate away
+kubectl -n "$NS" logs <pod> -c <container> --previous --timestamps > /tmp/<pod>-previous.log 2>&1 || true
 
-## Response Principles
-- **Speed matters, but accuracy matters more**: A wrong fix can exponentially worsen the situation
-- **Communication is critical**: Stakeholders need regular updates with appropriate detail
-- **Fix first, understand later**: Focus on service restoration before root cause analysis
-- **Document everything**: Timeline, decisions, and lessons learned are invaluable
-- **Learn and improve**: Every incident is an opportunity to build better systems
+# Goroutine/thread dumps if exposed, then current logs
+kubectl -n "$NS" exec <pod> -c <container> -- sh -c 'kill -QUIT 1; sleep 2' 2>/dev/null || true
+kubectl -n "$NS" logs <pod> -c <container> --timestamps --tail=2000 > /tmp/<pod>-current.log
 
-Remember: Excellence in incident response comes from preparation, practice, and continuous improvement of both technical systems and human processes.
+# Now restart
+kubectl -n "$NS" delete pod <pod>
+```
 
-## Limitations
-- Use this skill only when the task clearly matches the scope described above.
-- Do not treat the output as a substitute for environment-specific validation, testing, or expert review.
-- Stop and ask for clarification if required inputs, permissions, safety boundaries, or success criteria are missing.
+Verification: replacement pod reaches Ready and error rates drop. If it wedges identically within minutes, return to triage and pick a different mitigation.
+
+## Evidence Capture for Postmortem
+
+Evidence is perishable: events expire after roughly an hour by default, `--previous` logs vanish on pod deletion, metrics downsample. Capture early, store outside the cluster.
+
+```bash
+# Events (default retention ~1h; grab now)
+kubectl -n "$NS" get events --sort-by=.lastTimestamp -o wide > /tmp/events.log
+
+# Cluster-wide if the blast radius is unclear
+kubectl get events -A --sort-by=.lastTimestamp | tail -n 200 > /tmp/events-all.log
+
+# Current and previous logs for every affected pod
+for p in $(kubectl -n "$NS" get pods -o name); do
+  kubectl -n "$NS" logs "$p" --all-containers --timestamps --tail=5000 > "/tmp/$(basename "$p")-current.log" 2>&1 || true
+  kubectl -n "$NS" logs "$p" --all-containers --previous --timestamps > "/tmp/$(basename "$p")-previous.log" 2>&1 || true
+done
+
+# Describe captures probe failures, image pulls, OOM kills, scheduling
+kubectl -n "$NS" describe pods > /tmp/describe-pods.log
+
+# Metrics: see observability/prometheus for instant/range PromQL and
+# observability/grafana for dashboard export pinned to the UTC incident window.
+```
+
+Timeline rules:
+
+- Append-only, UTC timestamps, one fact per line. Corrections get a new line marked `CORRECTION`; never edit history.
+- Record commands and output summaries, decisions with the reasoning available at the time, and every external communication.
+- The timeline plus the captures above are the mandatory postmortem inputs. Structure lives in `incident-runbook-templates` and `runbook-creator`.
+
+## Observability Tooling Pointers
+
+Prefer the sibling observability skills over improvising queries under pressure:
+
+- `observability/prometheus` -- instant PromQL for error rate, latency percentiles, saturation (USE/RED), and alert state; range queries in the incident window for before/after comparison.
+- `observability/grafana` -- dashboards pinned to the incident time range, panel export for evidence, annotating the mitigation moment for the postmortem.
+- `observability/loki` -- label-scoped log hunts filtering on the failing request or trace ID, confirming the mitigation silenced the error pattern.
+
+Baseline loop: after each action, check one golden signal (usually error rate) at 1- and 5-min granularity before declaring success.
+
+## Communication
+
+Never miss a scheduled update even with nothing new; "still investigating, next update at HH:MM UTC" is valid.
+
+| Severity | Channel | Cadence | Audience |
+| ---------- | --------- | --------- | ---------- |
+| P0 | Incident channel + bridge call | Every 15-20 min | Engineering, support, exec sponsor, comms |
+| P1 | Incident channel | Every 30 min | Engineering, support leads |
+| P2 | Incident channel or ticket | Every 2 h | Owning team, support |
+| P3 | Ticket | Daily or on resolution | Owning team |
+
+Status update template:
+
+```text
+[STATUS] <severity> <service> -- <YYYY-MM-DD HH:MM UTC>
+Summary: <one sentence, current user impact>
+Impact: <who/what is affected, error rate or % if known>
+Current action: <the single mitigation in progress>
+Next update: <HH:MM UTC>
+Incident Commander: <name>  Operator: <name>
+```
+
+Stakeholder map:
+
+| Stakeholder | When to engage | What they need |
+| ------------- | ---------------- | ---------------- |
+| On-call secondary | P0-P1 immediately | Timeline access, command readiness |
+| Service owner team | Any severity touching their service | Technical detail, deploy history |
+| Customer support | P0-P1, or any user-visible impact | User-facing summary, workaround |
+| Exec sponsor | P0 within 30 min | Impact magnitude, honest ETA, not detail |
+| Security team | Any breach or data-exposure suspicion | Preserve evidence; freeze destructive actions |
+| Comms/legal | P0 with external or regulated impact | Approved external wording only |
+
+Rules: one voice per audience; no speculation in status updates, only what is verified and being tried; every update goes into the timeline.
+
+## When to Escalate
+
+- Mitigation exhausted or blast radius growing -> hand coordination to `incident-commander`.
+- Symptoms recur, root cause unknown -> deep investigation with `incident-response`.
+- Resolved -> codify with `incident-runbook-templates` or `runbook-creator` so the next responder executes, not improvises.

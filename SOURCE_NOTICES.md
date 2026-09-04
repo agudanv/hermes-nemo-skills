@@ -50,6 +50,16 @@ First-party replacements authored under Apache-2.0 (NVIDIA):
 troubleshooting needs remain covered by the MIT-licensed
 `kubernetes/kubernetes-troubleshooting/` and `kubernetes/kubernetes-skill/`.
 
+Follow-up (2026-09-03): the last nine CC-BY-4.0 skill directories were replaced
+end-to-end with first-party Apache-2.0 authorship at the same paths, written
+clean-room from domain knowledge without consulting the removed text:
+`operations/devops/{cloud-devops,devops-troubleshooter,docker-expert}/`,
+`operations/infrastructure/kubernetes/{kubernetes-architect,kubernetes-deployment}/`,
+and `operations/infrastructure/sre/{incident-responder,incident-response-incident-response,incident-response-smart-fix,incident-runbook-templates}/`.
+Presentation capability was likewise restored as a first-party skill at
+`workflows/productivity/powerpoint/`. All active skills are now MIT- or
+Apache-2.0-licensed; no CC-BY-4.0 material remains in the tree.
+
 ## Restored Reference Dependencies
 
 On 2026-07-28, every active `SKILL.md` was audited for path-like local

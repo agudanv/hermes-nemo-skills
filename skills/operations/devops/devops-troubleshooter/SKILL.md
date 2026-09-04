@@ -1,166 +1,231 @@
 ---
 name: devops-troubleshooter
-description: Expert DevOps troubleshooter specializing in rapid incident response, advanced debugging, and modern observability.
-risk: unknown
-source: community
-date_added: '2026-02-27'
-license: CC-BY-4.0
+description: "Rapid structured diagnosis of DevOps failures: CI/CD breaks, Kubernetes/OpenShift deploy failures, environment drift, container build issues. Covers failing stages, flaky tests, dependency resolution, registry auth, ImagePullBackOff, CrashLoopBackOff, pending pods, manifest diffing, cache busting, and lockfile conflicts. Use when a pipeline failed, deploy broken, environment drift suspected, CI failing, or you need to debug a broken deployment."
+license: Apache-2.0
 ---
 
-<!-- SPDX-FileCopyrightText: 2026 Antigravity User -->
-<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+<!-- SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
 
-## Use this skill when
+# DevOps Troubleshooter
 
-- Working on devops troubleshooter tasks or workflows
-- Needing guidance, best practices, or checklists for devops troubleshooter
+Operational runbook for evidence-driven diagnosis of DevOps failures on Linux, with `kubectl`, `oc`, `helm`, and GitOps CLI access. Install missing CLIs as pinned release binaries, never via curl-to-shell installers.
 
-## Do not use this skill when
+## Method: Symptom to Verified Fix
 
-- The task is unrelated to devops troubleshooter
-- You need a different domain or tool outside this scope
+Follow the loop strictly; gather evidence before touching state.
 
-## Instructions
+1. Symptom. One sentence: what fails, since when, blast radius (users, environments, pipelines). Capture exact error text and exit code. Ask first: what changed? Recent deploys, config edits, cert or token rotations, node maintenance, upstream incidents.
+2. Hypothesis. Rank 2-3 candidate causes by likelihood times cost to check; run the cheapest discriminating test first. Always keep "the last change caused this" on the list.
+3. Evidence. One read-only command per hypothesis, full output captured. Never mutate state while gathering; mutation contaminates the signal.
+4. Minimal fix. Smallest reversible change, one variable at a time. Snapshot state first (see Evidence Discipline).
+5. Verify. Define success criteria before applying: exit code 0, rollout complete, probe passing, metric at baseline. Watch a 5-15 minute regression window.
 
-- Clarify goals, constraints, and required inputs.
-- Apply relevant best practices and validate outcomes.
-- Provide actionable steps and verification.
-- If detailed examples are required, open `resources/implementation-playbook.md`.
+Time-box: 15 minutes without new evidence on a hypothesis means abandon and re-rank. Two failed loops -> escalate.
 
-You are a DevOps troubleshooter specializing in rapid incident response, advanced debugging, and modern observability practices.
+## CI/CD Breaks
 
-## Purpose
-Expert DevOps troubleshooter with comprehensive knowledge of modern observability tools, debugging methodologies, and incident response practices. Masters log analysis, distributed tracing, performance debugging, and system reliability engineering. Specializes in rapid problem resolution, root cause analysis, and building resilient systems.
+### Reading build logs
 
-## Capabilities
+Pull the full log first; never diagnose a pasted tail.
 
-### Modern Observability & Monitoring
-- **Logging platforms**: ELK Stack (Elasticsearch, Logstash, Kibana), Loki/Grafana, Fluentd/Fluent Bit
-- **APM solutions**: DataDog, New Relic, Dynatrace, AppDynamics, Instana, Honeycomb
-- **Metrics & monitoring**: Prometheus, Grafana, InfluxDB, VictoriaMetrics, Thanos
-- **Distributed tracing**: Jaeger, Zipkin, AWS X-Ray, OpenTelemetry, custom tracing
-- **Cloud-native observability**: OpenTelemetry collector, service mesh observability
-- **Synthetic monitoring**: Pingdom, Datadog Synthetics, custom health checks
+```bash
+# GitLab
+glab ci trace <job-id> > build.log
+# GitHub Actions
+gh run view <run-id> --log-failed > build.log
+# Jenkins
+jenkins-cli console <job-name> <build-number> > build.log
+```
 
-### Container & Kubernetes Debugging
-- **kubectl mastery**: Advanced debugging commands, resource inspection, troubleshooting workflows
-- **Container runtime debugging**: Docker, containerd, CRI-O, runtime-specific issues
-- **Pod troubleshooting**: Init containers, sidecar issues, resource constraints, networking
-- **Service mesh debugging**: Istio, Linkerd, Consul Connect traffic and security issues
-- **Kubernetes networking**: CNI troubleshooting, service discovery, ingress issues
-- **Storage debugging**: Persistent volume issues, storage class problems, data corruption
+Then reduce:
 
-### Network & DNS Troubleshooting
-- **Network analysis**: tcpdump, Wireshark, eBPF-based tools, network latency analysis
-- **DNS debugging**: dig, nslookup, DNS propagation, service discovery issues
-- **Load balancer issues**: AWS ALB/NLB, Azure Load Balancer, GCP Load Balancer debugging
-- **Firewall & security groups**: Network policies, security group misconfigurations
-- **Service mesh networking**: Traffic routing, circuit breaker issues, retry policies
-- **Cloud networking**: VPC connectivity, peering issues, NAT gateway problems
+```bash
+grep -nE 'ERROR|FAIL(ED)?|fatal:|panic:|Traceback' build.log
+grep -nE 'exit code [1-9]|Exit status [1-9]' build.log
+grep -nE 'OOMKilled|No space left|Segmentation fault|Killed' build.log
+```
 
-### Performance & Resource Analysis
-- **System performance**: CPU, memory, disk I/O, network utilization analysis
-- **Application profiling**: Memory leaks, CPU hotspots, garbage collection issues
-- **Database performance**: Query optimization, connection pool issues, deadlock analysis
-- **Cache troubleshooting**: Redis, Memcached, application-level caching issues
-- **Resource constraints**: OOMKilled containers, CPU throttling, disk space issues
-- **Scaling issues**: Auto-scaling problems, resource bottlenecks, capacity planning
+Exit codes:
 
-### Application & Service Debugging
-- **Microservices debugging**: Service-to-service communication, dependency issues
-- **API troubleshooting**: REST API debugging, GraphQL issues, authentication problems
-- **Message queue issues**: Kafka, RabbitMQ, SQS, dead letter queues, consumer lag
-- **Event-driven architecture**: Event sourcing issues, CQRS problems, eventual consistency
-- **Deployment issues**: Rolling update problems, configuration errors, environment mismatches
-- **Configuration management**: Environment variables, secrets, config drift
+| Code | Meaning | Typical cause |
+| --- | --- | --- |
+| 0 | success | - |
+| 1 | general error | test or assertion failure |
+| 124 | `timeout` expired | hung step, slow network |
+| 126 | not executable | missing `+x`, wrong shebang |
+| 127 | command not found | image drift, PATH change |
+| 137 | SIGKILL (128+9) | OOM in runner, cgroup limit |
+| 143 | SIGTERM (128+15) | job cancelled, runner evicted |
 
-### CI/CD Pipeline Debugging
-- **Build failures**: Compilation errors, dependency issues, test failures
-- **Deployment troubleshooting**: GitOps issues, ArgoCD/Flux problems, rollback procedures
-- **Pipeline performance**: Build optimization, parallel execution, resource constraints
-- **Security scanning issues**: SAST/DAST failures, vulnerability remediation
-- **Artifact management**: Registry issues, image corruption, version conflicts
-- **Environment-specific issues**: Configuration mismatches, infrastructure problems
+### Failing stages
 
-### Cloud Platform Troubleshooting
-- **AWS debugging**: CloudWatch analysis, AWS CLI troubleshooting, service-specific issues
-- **Azure troubleshooting**: Azure Monitor, PowerShell debugging, resource group issues
-- **GCP debugging**: Cloud Logging, gcloud CLI, service account problems
-- **Multi-cloud issues**: Cross-cloud communication, identity federation problems
-- **Serverless debugging**: Lambda functions, Azure Functions, Cloud Functions issues
+- Reproduce locally in the runner image: `docker run --rm -it <ci-image> bash`.
+- Diff last green vs first red job: image tag, runner version, env var names. Exit 137 on a stable job is runner OOM; raise memory or split the step.
 
-### Security & Compliance Issues
-- **Authentication debugging**: OAuth, SAML, JWT token issues, identity provider problems
-- **Authorization issues**: RBAC problems, policy misconfigurations, permission debugging
-- **Certificate management**: TLS certificate issues, renewal problems, chain validation
-- **Security scanning**: Vulnerability analysis, compliance violations, security policy enforcement
-- **Audit trail analysis**: Log analysis for security events, compliance reporting
+### Flaky tests
 
-### Database Troubleshooting
-- **SQL debugging**: Query performance, index usage, execution plan analysis
-- **NoSQL issues**: MongoDB, Redis, DynamoDB performance and consistency problems
-- **Connection issues**: Connection pool exhaustion, timeout problems, network connectivity
-- **Replication problems**: Primary-replica lag, failover issues, data consistency
-- **Backup & recovery**: Backup failures, point-in-time recovery, disaster recovery testing
+Definition: same commit, rerun passes. Confirm by re-running the exact failed SHA with no changes.
 
-### Infrastructure & Platform Issues
-- **Infrastructure as Code**: Terraform state issues, provider problems, resource drift
-- **Configuration management**: Ansible playbook failures, Chef cookbook issues, Puppet manifest problems
-- **Container registry**: Image pull failures, registry connectivity, vulnerability scanning issues
-- **Secret management**: Vault integration, secret rotation, access control problems
-- **Disaster recovery**: Backup failures, recovery testing, business continuity issues
+```bash
+for i in $(seq 1 20); do ./run-test.sh <name> && echo PASS || echo "FAIL run $i"; done
+```
 
-### Advanced Debugging Techniques
-- **Distributed system debugging**: CAP theorem implications, eventual consistency issues
-- **Chaos engineering**: Fault injection analysis, resilience testing, failure pattern identification
-- **Performance profiling**: Application profilers, system profiling, bottleneck analysis
-- **Log correlation**: Multi-service log analysis, distributed tracing correlation
-- **Capacity analysis**: Resource utilization trends, scaling bottlenecks, cost optimization
+Root causes by frequency: test-order dependence, wall-clock assumptions, shared state (DB rows, files, fixed ports), runner contention, unmocked network. Mitigate by pinning seeds, using ephemeral ports, isolating state per test, and quarantining with a retry budget of exactly one; unlimited retries hide regressions.
 
-## Behavioral Traits
-- Gathers comprehensive facts first through logs, metrics, and traces before forming hypotheses
-- Forms systematic hypotheses and tests them methodically with minimal system impact
-- Documents all findings thoroughly for postmortem analysis and knowledge sharing
-- Implements fixes with minimal disruption while considering long-term stability
-- Adds proactive monitoring and alerting to prevent recurrence of issues
-- Prioritizes rapid resolution while maintaining system integrity and security
-- Thinks in terms of distributed systems and considers cascading failure scenarios
-- Values blameless postmortems and continuous improvement culture
-- Considers both immediate fixes and long-term architectural improvements
-- Emphasizes automation and runbook development for common issues
+### Dependency resolution failures
 
-## Knowledge Base
-- Modern observability platforms and debugging tools
-- Distributed system troubleshooting methodologies
-- Container orchestration and cloud-native debugging techniques
-- Network troubleshooting and performance analysis
-- Application performance monitoring and optimization
-- Incident response best practices and SRE principles
-- Security debugging and compliance troubleshooting
-- Database performance and reliability issues
+- npm: `npm ls <pkg>` finds the conflict path; `npm ci` reproduces CI exactly; pin in `package.json` rather than leaving `--force` or `--legacy-peer-deps` in place.
+- pip: `pip install --dry-run -r requirements.txt` previews resolution; `pip check` after install; constrain the conflicting transitive dependency.
+- Go: `go mod tidy`, then `git diff go.mod go.sum`; `go mod verify`.
+- Intermittent 401/403 from artifact proxies: stale credentials in `.npmrc`, `.pip.conf`, or CI variables. Rotate via the CI secret store; reference variable names (`NPM_TOKEN`, `PIP_INDEX_URL`), never values.
 
-## Response Approach
-1. **Assess the situation** with urgency appropriate to impact and scope
-2. **Gather comprehensive data** from logs, metrics, traces, and system state
-3. **Form and test hypotheses** systematically with minimal system disruption
-4. **Implement immediate fixes** to restore service while planning permanent solutions
-5. **Document thoroughly** for postmortem analysis and future reference
-6. **Add monitoring and alerting** to detect similar issues proactively
-7. **Plan long-term improvements** to prevent recurrence and improve system resilience
-8. **Share knowledge** through runbooks, documentation, and team training
-9. **Conduct blameless postmortems** to identify systemic improvements
+### Registry auth
 
-## Example Interactions
-- "Debug high memory usage in Kubernetes pods causing frequent OOMKills and restarts"
-- "Analyze distributed tracing data to identify performance bottleneck in microservices architecture"
-- "Troubleshoot intermittent 504 gateway timeout errors in production load balancer"
-- "Investigate CI/CD pipeline failures and implement automated debugging workflows"
-- "Root cause analysis for database deadlocks causing application timeouts"
-- "Debug DNS resolution issues affecting service discovery in Kubernetes cluster"
-- "Analyze logs to identify security breach and implement containment procedures"
-- "Troubleshoot GitOps deployment failures and implement automated rollback procedures"
+```bash
+# List configured registries (keys only, never print secrets)
+jq -r '.auths | keys[]' "$DOCKER_CONFIG/config.json"
+# Inspect a Kubernetes pull secret
+kubectl get secret <pull-secret> -n <ns> \
+  -o jsonpath='{.data.\.dockerconfigjson}' | base64 -d | jq -r '.auths | keys[]'
+# Prove auth works with a minimal pull
+docker pull <registry>/<repo>:<tag>
+```
 
-## Limitations
-- Use this skill only when the task clearly matches the scope described above.
-- Do not treat the output as a substitute for environment-specific validation, testing, or expert review.
-- Stop and ask for clarification if required inputs, permissions, safety boundaries, or success criteria are missing.
+Frequent causes: expired robot token, SSO expiry, CI variable overwritten at group level, registry IP allowlist change.
+
+## Deploy Failures
+
+### Rollout triage and rollback
+
+```bash
+kubectl rollout status deploy/<app> -n <ns> --timeout=60s
+kubectl rollout history deploy/<app> -n <ns>
+kubectl rollout undo deploy/<app> -n <ns> --to-revision=<n>
+kubectl rollout pause deploy/<app> -n <ns>   # stop the bleeding while diagnosing
+# OpenShift DeploymentConfig
+oc rollout status dc/<app> -n <ns>
+oc rollout history dc/<app> -n <ns>
+oc rollback <app> -n <ns> --to-version=<n>
+```
+
+### ImagePullBackOff
+
+`kubectl describe pod` Events confirm the cause. Causes in frequency order:
+
+| Cause | Check |
+| --- | --- |
+| Tag does not exist (typo, failed push) | `crane ls <registry>/<repo>` or `docker manifest inspect <img>:<tag>` |
+| Missing or expired pull credentials | pull secret exists, not expired, attached to the right ServiceAccount |
+| Registry unreachable from nodes | node DNS, egress proxy, NetworkPolicy |
+| Registry rate limit | anonymous pull quota (for example Docker Hub); authenticate pulls |
+| Digest mismatch after re-tag | pull by digest: `<img>@sha256:...` |
+
+### CrashLoopBackOff first steps
+
+```bash
+kubectl logs <pod> -n <ns> -c <container> --previous   # logs of the crashed run
+kubectl get events -n <ns> --sort-by=.lastTimestamp | tail -30
+kubectl describe pod <pod> -n <ns> | sed -n '/Last State/,/Ready/p'
+```
+
+Map `lastState.terminated.reason` to action:
+
+| Reason | Meaning | First action |
+| --- | --- | --- |
+| `Error`, exit 1 | app config or startup failure | read `--previous` logs; check env vars, ConfigMap, mounted secrets |
+| `OOMKilled` | memory limit hit | compare usage to limit; raise the limit or fix the leak |
+| `Completed` | main process exited 0 | entrypoint should not exit; check command and args |
+| probe failure | liveness kills a slow-but-healthy app | check startup time; add a `startupProbe` or lengthen `initialDelaySeconds` |
+
+A missing `optional: false` env or secret key blocks pod creation; it shows in Events as `secret "x" not found`, never in logs.
+
+### Pending pods
+
+```bash
+kubectl describe pod <pod> -n <ns> | sed -n '/Events/,$p'
+kubectl describe node <node> | sed -n '/Allocated resources/,/Events/p'
+kubectl get pvc -n <ns>
+kubectl get nodes -o custom-columns=NAME:.metadata.name,TAINTS:.spec.taints
+```
+
+Causes: requests exceed allocatable capacity, taints without tolerations, unsatisfiable nodeSelector or affinity, unbound PVC (storage class missing or provisioner down), quota exhaustion (`kubectl describe resourcequota -n <ns>`).
+
+## Environment Drift
+
+### Config skew between environments
+
+```bash
+# Compare kustomize overlays
+diff -u <(kustomize build overlays/dev) <(kustomize build overlays/prod)
+# Compare rendered Helm output against live cluster state
+helm template <release> <chart> -n <ns> -f values-<env>.yaml | kubectl diff -f -
+# Compare local manifests against live
+kubectl diff -f manifests/ -n <ns>
+```
+
+For ConfigMap or Secret skew across clusters, compare hashes, never values:
+
+```bash
+kubectl --context dev get cm <name> -n <ns> -o yaml | sha256sum
+kubectl --context prod get cm <name> -n <ns> -o yaml | sha256sum
+```
+
+### Secret rotation failures
+
+- Expired TLS: `kubectl get secret <tls-secret> -n <ns> -o jsonpath='{.data.tls\.crt}' | base64 -d | openssl x509 -noout -dates`.
+- Zero-outage rotation: create new secret version, update consumers, rolling-restart (`kubectl rollout restart deploy/<app> -n <ns>`), verify, then revoke the old credential. Apps that cache credentials at startup need a restart; canary one pod first.
+
+### Git vs cluster (GitOps)
+
+```bash
+argocd app get <app> --refresh        # sync status and conditions
+argocd app diff <app>                 # desired vs live
+argocd app history <app>              # recent syncs
+flux get kustomizations -n <ns>       # Flux equivalent
+flux diff kustomization <name> -n <ns>
+```
+
+`OutOfSync` causes: manual `kubectl` edits on a GitOps-managed resource, failed sync (read `.status.conditions`), `ignoreDifferences` masking real drift, or a commit on the wrong branch or environment directory. Controller internals go to `gitops-troubleshooting`.
+
+## Build Issues
+
+### Layer cache busting
+
+- Order Dockerfile instructions least-to-most volatile: base, system packages, lockfiles, dependency install, source copy.
+- `COPY package*.json ./ && npm ci` before `COPY . .`, so source-only changes reuse the dependency layer.
+- A wrong or missing `.dockerignore` busts the cache: `COPY . .` hashes the whole context, including `.git`.
+- `docker buildx build --progress=plain .` shows exactly which step cache-misses; a one-off `docker build --no-cache` isolates stale-layer problems from code problems.
+- CI: key `--cache-from`/`--cache-to` (registry type) on a stable ref; a cold cache after a runner image change looks like a code regression.
+
+### Base-image CVE bumps
+
+- Rebuild with `docker build --pull`; without it a stale local base persists silently.
+- Scan before promoting: `trivy image <img>:<tag>` or `grype <img>:<tag>`; gate on severity per policy.
+- Pin bases by digest (`FROM <img>@sha256:...`) and bump deliberately in a reviewable PR; mutable tags make builds non-reproducible and CVE state untraceable.
+- Green yesterday, red today, zero code changes: the base image or the vulnerability database moved, not your code.
+
+### Lockfile conflicts
+
+- Never hand-merge `package-lock.json`, `yarn.lock`, `poetry.lock`, `Pipfile.lock`, `go.sum`. Take one side and regenerate (`npm install`, `yarn install`, `poetry lock --no-update`, `go mod tidy`) on a pinned toolchain, and commit manifest plus lock together. Cross-version lockfiles (different Node or Python majors) conflict in phantom ways; pin the toolchain in CI and the dev container.
+
+## Evidence Discipline
+
+- Log everything: `script -a troubleshoot-$(date -u +%Y%m%dT%H%M%SZ).log` before starting, or paste command plus output into the ticket as you go. Postmortems die from missing evidence.
+- Record constants: UTC timestamps, cluster and context (`kubectl config current-context`), namespace, app version or image digest, last known good time.
+- Snapshot before mutating: `kubectl get deploy <app> -n <ns> -o yaml > backup-<app>-<ts>.yaml`. Every fix must be reversible to this snapshot.
+- Never fix in production what you cannot reproduce in staging. If reproduction is impossible, gate the change behind a canary or feature flag with a defined rollback trigger.
+- One change per verify cycle; simultaneous changes make verification meaningless.
+- Record root cause, fix, and the discriminating command that proved it. That trio seeds a runbook (see `runbook-creator`).
+
+## Escalation
+
+| Situation | Route to |
+| --- | --- |
+| Production-impacting or user-facing outage | `incident-responder`, `incident-response` |
+| Argo CD or Flux sync failures, drift loops, controller internals | `gitops-troubleshooting` |
+| Node-level or control-plane failures beyond app scope | `kubernetes-troubleshooting`, `failure-analysis` |
+| Post-incident: codify the fix as a runbook | `runbook-creator` |
+| Skill building after the fire is out | `devops-learning-path` |
+
+Escalate early with the evidence log attached: symptom, hypotheses tried, commands and outputs, blast radius.
