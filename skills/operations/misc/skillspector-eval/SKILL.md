@@ -1,6 +1,7 @@
 ---
 name: skillspector-eval
 description: Evaluates a skill package for safety, correctness, and policy compliance using the Skillspector engine. Accepts stdin JSON (skill_path, skill_name, policy_bundle, evaluation_mode) and emits a JSON report with severity-ranked findings and an approve/reject/conditional recommendation. Used by nemoclaw-skill-install as an install gate. Triggers on: skillspector, skill evaluation, skill safety scan, policy bundle compliance check.
+license: Apache-2.0
 ---
 # Skill: skillspector-eval
 

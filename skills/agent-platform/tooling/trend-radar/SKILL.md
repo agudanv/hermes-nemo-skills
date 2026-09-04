@@ -20,6 +20,7 @@ metadata:
       },
   }
 allowed-tools: Bash(python3:*), Bash(crontab:*), Read
+license: Apache-2.0
 ---
 
 # Trend Radar

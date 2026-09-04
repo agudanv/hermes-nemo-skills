@@ -1,6 +1,7 @@
 ---
 name: misc
 description: "Category root for miscellaneous skills in operations/. Load this file first for any skill installation, Skillspector evaluation, Nemoclaw skill management, managed skill approval workflow, shell prompt configuration, or shell script quality (defensive Bash, Bats testing, ShellCheck) question. Each subskill below is summarized with purpose, interface, key flow, and a pointer to its directory for full detail."
+license: Apache-2.0
 ---
 
 # Misc — Category Skill

@@ -1,6 +1,7 @@
 ---
 name: cross-source-gap-analysis
 description: Compare findings across Slack, GitHub, NVIDIA forums, and Outlook to identify alignment gaps, missing coverage, and follow-ups.
+license: Apache-2.0
 ---
 
 # cross-source-gap-analysis

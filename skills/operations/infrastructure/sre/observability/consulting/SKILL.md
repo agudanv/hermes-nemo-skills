@@ -1,6 +1,7 @@
 ---
 name: observability-consulting
 description: Use for observability, logs, metrics, traces, health checks, dashboards, alerts, and SLOs.
+license: MIT
 ---
 
 # Observability

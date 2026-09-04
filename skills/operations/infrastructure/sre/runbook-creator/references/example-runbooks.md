@@ -61,7 +61,7 @@ kubectl get configmap api-config -n production -o yaml | head -20
 # Database connectivity
 kubectl exec -it deployment/api-service -n production -- nc -zv db-host 5432
 
-# Cache connectivity  
+# Cache connectivity
 kubectl exec -it deployment/api-service -n production -- redis-cli -h cache-host ping
 ```
 
@@ -207,8 +207,8 @@ Resolve database connection pool exhaustion causing application errors.
 ### Step 1: Check Current Connections
 ```sql
 -- PostgreSQL
-SELECT count(*), state 
-FROM pg_stat_activity 
+SELECT count(*), state
+FROM pg_stat_activity
 GROUP BY state;
 
 -- Check max connections
@@ -218,9 +218,9 @@ SHOW max_connections;
 ### Step 2: Identify Connection Holders
 ```sql
 -- PostgreSQL - connections by application
-SELECT application_name, count(*) 
-FROM pg_stat_activity 
-GROUP BY application_name 
+SELECT application_name, count(*)
+FROM pg_stat_activity
+GROUP BY application_name
 ORDER BY count DESC;
 
 -- Long-running queries holding connections
@@ -242,9 +242,9 @@ curl http://[app-host]/metrics | grep db_pool
 ### Option A: Kill Idle Connections
 ```sql
 -- PostgreSQL - kill idle connections older than 10 minutes
-SELECT pg_terminate_backend(pid) 
-FROM pg_stat_activity 
-WHERE state = 'idle' 
+SELECT pg_terminate_backend(pid)
+FROM pg_stat_activity
+WHERE state = 'idle'
 AND query_start < now() - interval '10 minutes';
 ```
 

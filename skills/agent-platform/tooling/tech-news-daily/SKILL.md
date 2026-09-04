@@ -1,6 +1,7 @@
 ---
 name: agent-tech-news-daily
 description: 每日科技新闻汇——从全球多个 RSS 源抓取最新科技新闻，翻译（英→中）、去重、排版成每日简报。当用户询问科技新闻、科技新鲜事、每日科技、技术动态、Daily Tech News 或类似表达时触发此技能。
+license: Apache-2.0
 ---
 
 # 每日科技新闻汇总

@@ -1,6 +1,7 @@
 ---
 name: devops-automation-microservices-design
 description: Microservices design patterns including service mesh, event-driven architecture, saga pattern, and API gateway
+license: Apache-2.0
 ---
 
 # Microservices Design

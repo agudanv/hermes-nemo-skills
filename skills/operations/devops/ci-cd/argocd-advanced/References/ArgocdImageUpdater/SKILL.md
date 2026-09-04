@@ -1,6 +1,7 @@
 ---
 name: argocd-advanced-argocd-image-updater
 description: Manage ArgoCD Image Updater configuration, drift resolution, and ImageUpdater CRDs. USE WHEN argocd image updater, image update drift, ImageUpdater CRD, extraObjects helm, environment-scoped image updates, argocd-image-updater troubleshooting.
+license: Apache-2.0
 ---
 
 # ArgoCD Image Updater

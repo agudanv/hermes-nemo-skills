@@ -1,6 +1,7 @@
 ---
 name: shell-prompt
 description: Modern shell prompt configuration with Powerlevel10k and Zsh Vi Mode. Use when configuring shell prompts, setting up vi/vim keybindings in zsh, customizing cursor styles per mode, adding mode indicators, optimizing prompt performance, or troubleshooting slow prompts. Covers P10k instant prompt, vi mode plugins, and cursor customization.
+license: Apache-2.0
 ---
 
 # Shell Prompt Skill

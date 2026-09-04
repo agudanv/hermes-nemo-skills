@@ -1,6 +1,7 @@
 ---
 name: runbook-creator
 description: Templates and patterns for creating operational runbooks and playbooks. Use when creating runbooks, writing operational documentation, playbook creation, or documenting procedures for on-call teams.
+license: MIT
 ---
 
 <!-- SPDX-FileCopyrightText: Copyright (c) 2026 Nik Kale -->
@@ -250,17 +251,17 @@ kubectl rollout undo deployment/[service] -n [namespace]
    ```
 
 2. **Clear cache**
-   
+
    **Redis - All keys**:
    ```bash
    redis-cli -h [host] FLUSHALL
    ```
-   
+
    **Redis - Specific pattern**:
    ```bash
    redis-cli -h [host] --scan --pattern "user:*" | xargs redis-cli DEL
    ```
-   
+
    **Application cache**:
    ```bash
    curl -X POST http://[service]/admin/cache/clear

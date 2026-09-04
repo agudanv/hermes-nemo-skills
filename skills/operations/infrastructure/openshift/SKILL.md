@@ -1,3 +1,12 @@
+---
+name: openshift-infrastructure-index
+description: "Index of OpenShift skills under operations/infrastructure/openshift/: LLM/GPU model deployment via openshift-llm-deploy and OpenShift-specific operations."
+license: Apache-2.0
+---
+
+<!-- SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+
 # OpenShift Skills Consolidated
 
 Unified OpenShift skill category for LLM model deployment, cluster operations, and platform-specific patterns.
@@ -25,7 +34,6 @@ Unified OpenShift skill category for LLM model deployment, cluster operations, a
 
 ### Cluster Operations
 - **openshift-operations** — OpenShift-specific operations (moved from SRE foundations)
-- **popeye-analysis** — OpenShift cluster security/conformance scans (moved from cluster-operations)
 
 ## Usage
 
@@ -40,8 +48,8 @@ skill load openshift.openshift-llm-deploy
 ./files/skills/infrastructure/openshift/openshift-llm-deploy/scripts/deploy-model.sh \
   --model glm-5.3-fp8 \
   --namespace runai-inference \
-  --gpu-type b200 \
-  --replicas 1
+  --platform b200 \
+  --gpus 1
 ```
 
 ## Key Features

@@ -94,7 +94,6 @@ Classic tool that wraps text in a speech bubble with an ASCII character.
 
 ```bash
 sudo apt install cowsay -y    # Debian/Ubuntu
-# brew install cowsay         # macOS
 ```
 
 ### Usage
@@ -138,7 +137,6 @@ Draw decorative ASCII art borders/frames around any text. 70+ built-in designs.
 
 ```bash
 sudo apt install boxes -y    # Debian/Ubuntu
-# brew install boxes         # macOS
 ```
 
 ### Usage
@@ -173,7 +171,6 @@ Like pyfiglet but with ANSI color effects and visual filters. Great for terminal
 
 ```bash
 sudo apt install toilet toilet-fonts -y    # Debian/Ubuntu
-# brew install toilet                      # macOS
 ```
 
 ### Usage

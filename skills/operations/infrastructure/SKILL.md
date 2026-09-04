@@ -1,6 +1,7 @@
 ---
 name: infrastructure
 description: "Category root for all infrastructure skills in operations/. Load this file first for any Kubernetes, OpenShift, SRE, incident response, observability (Prometheus/Grafana/Loki/OpenTelemetry), LLM/GPU deployment on OpenShift, GitOps, Helm, Terraform, Ansible, Vault, service mesh (Istio/Envoy/Consul/nginx-ingress), or cluster operations question. Each subskill below is summarized with purpose, triggers, key commands, and a pointer to its directory for full detail."
+license: Apache-2.0
 ---
 
 # Infrastructure — Category Skill
@@ -16,59 +17,17 @@ Subcategory index files also exist and mirror this structure: `kubernetes/SKILL.
 
 ## 1. Kubernetes (`kubernetes/`)
 
-Index: `kubernetes/SKILL.md` groups these into Fundamentals, Operations, Platform Automation,
-Platform Management, Troubleshooting, and Advanced Patterns.
+Index: `kubernetes/SKILL.md` groups these into Fundamentals, Platform Automation,
+Troubleshooting & Failure Analysis, Architecture & Patterns, and Security & GitOps
+Operations.
 
-### 1.1 Cluster Operations agent set (`kubernetes/cluster-operations/`)
-
-Nine large, production-grade operational skills (16–46 KB each). These are the deepest K8s/OCP
-content in the tree.
-
-| Skill | Role | Use when |
-| --- | --- | --- |
-| `cluster-ops` (Atlas) | Cluster lifecycle agent | Node operations, upgrades, etcd management, capacity planning on K8s and OpenShift |
-| `observability` (Pulse) | Observability agent | Prometheus/PromQL, Thanos queries, Loki/ELK log analysis, Grafana dashboards, alert triage/tuning, SLO/SLI management |
-| `orchestrator` | Swarm coordinator | Routing work across the specialized agents below, multi-agent task decomposition, daily standups |
-| `k8s-gitops` | GitOps agent | Setting up ArgoCD or Flux, GitOps repo design, CI/CD pipeline integration for K8s/OCP |
-| `k8s-manifests` | Manifest agent | Creating/validating any K8s/OCP YAML — Deployments, StatefulSets, DaemonSets, Jobs, RBAC, CRDs |
-| `k8s-operations` | Ops agent | Cluster upgrades (K8s, OCP, EKS, GKE), backup/restore, maintenance windows, lifecycle tasks |
-| `k8s-security` | Security agent | Security posture audits, hardening, compliance (CIS, Pod Security Standards), workload security |
-| `k8s-troubleshooting` | Health agent | Proactive cluster health analysis and troubleshooting using Popeye's issue-detection patterns |
-| `openshift-popeye-analysis` | OCP health agent | Same Popeye-based analysis specialized for OpenShift clusters, operators, and OCP resources |
-
-Pattern: Atlas owns lifecycle, Pulse owns telemetry, the orchestrator routes; the k8s-* agents
-are the execution specialists. For a single question go straight to the specialist; for a
-multi-domain engagement (upgrade + security + observability) start from `orchestrator/`.
-
-### 1.2 Fundamentals & local operations
+### 1.1 Fundamentals
 
 - **`fundamentals/k8s/`** — Core Kubernetes operations, troubleshooting, and platform
   engineering. Triggers: kubectl, pods, deployments, services, ingress, Helm charts, K8s
   manifests, RBAC. Start here for general K8s how-to. Assets: reference docs and scripts.
-- **`operations/`** — Cluster operations on **minikube**: local observability stack (Grafana,
-  Prometheus, Alertmanager, Loki, Tempo) and debugging with `kubectl debug` and ephemeral
-  containers. Use for local/repro environments, not production clusters.
 
-### 1.3 Platform management guides (`kubernetes/platform-management/`)
-
-Twelve focused guides (6–15 KB each), each with a reference asset:
-
-| Skill | Covers |
-| --- | --- |
-| `cluster-admin` | Installation, scaling, upgrades, HA strategies — setup through production management |
-| `deployments` | Deployments, StatefulSets, DaemonSets, workload orchestration patterns |
-| `docker-containers` | Image building, optimization, registry management, image security |
-| `gitops` | GitOps practices, CI/CD integration, Helm, Kustomize, ArgoCD |
-| `helm` | Helm package management, chart development, release management |
-| `monitoring` | Prometheus monitoring, logging, metrics, distributed tracing |
-| `security` | RBAC, network policies, pod security, compliance, access control |
-| `service-mesh` | Istio and Linkerd implementation, traffic management |
-| `storage-networking` | Persistent storage, network policies, service discovery, ingress routing |
-| `cost-optimization` | Resource optimization and FinOps practices |
-| `multi-cluster` | Federation and hybrid deployments |
-| `troubleshooting` | Debugging, problem diagnosis, issue resolution |
-
-### 1.4 Platform automation (`kubernetes/platform-automation/`)
+### 1.2 Platform automation (`kubernetes/platform-automation/`)
 
 Generator-style skills with executable assets:
 
@@ -81,7 +40,7 @@ Generator-style skills with executable assets:
 - **`k8s-security-policies/`** — Implement NetworkPolicy, PodSecurityPolicy, and RBAC for
   production-grade security.
 
-### 1.5 Failure-mode analysis (KubeShark family)
+### 1.3 Failure-mode analysis (KubeShark family)
 
 - **`kubernetes-skill/`** — Failure-mode workflow built on KubeShark: a 7-step process that
   captures cluster context, diagnoses the failure mode, loads the matching reference playbook,
@@ -93,7 +52,7 @@ Generator-style skills with executable assets:
   (insecure defaults, resource starvation, network exposure, privilege sprawl) in a smaller
   package. Use `kubernetes-skill/` for the full workflow, `failure-analysis/` for quick triage.
 
-### 1.6 Architecture & patterns
+### 1.4 Architecture & patterns
 
 - **`kubernetes-architect/`** — Cloud-native infrastructure architecture, advanced GitOps
   (ArgoCD/Flux), enterprise container orchestration design.
@@ -105,6 +64,21 @@ Generator-style skills with executable assets:
   OOMKilled, ImagePullBackOff, resource problems, networking.
 - **`knative/`** — Knative serverless on Kubernetes: Serving, Eventing, Functions,
   scale-to-zero autoscaling, event-driven architectures, traffic splitting (blue-green).
+
+### 1.5 Security & GitOps operations (first-party)
+
+Two skills authored in-repo for day-2 operations on production clusters:
+
+- **`cluster-security-audit/`** — Read-only security audit workflow with `kubectl`/`oc`:
+  privileged-workload census, OpenShift SCC review (`oc adm policy scc-review`), RBAC
+  escalation-path analysis, PodSecurity Admission labels, NetworkPolicy coverage, secret
+  hygiene, and a severity-ranked findings report. Use for "audit this cluster".
+- **`gitops-troubleshooting/`** — GitOps day-2 failures: Argo CD apps stuck OutOfSync or
+  Degraded, sync-wave/hook ordering, server-side-apply field-manager conflicts, drift
+  triage (external mutation vs mutating controllers vs manager fights), rollback decision
+  (git revert vs break-glass `argocd rollback`), Argo Rollouts canary analysis. Pair with
+  `platform-automation/gitops-workflow/` (setup) and `kubernetes-troubleshooting/`
+  (workload-level failures).
 
 ---
 
@@ -148,8 +122,6 @@ LLM via vLLM or NVIDIA Dynamo on OpenShift.
 --expose
 ```
 
-(The sub-index's `--gpu-type` / `--replicas` flags do **not** exist — do not use them.)
-
 Output markers to parse: `DYNAMO_RESULT`, `FALLBACK_RESULT`, `STANDARD_VLLM_RESULT`,
 `DEPLOYMENT_RESULT`, `DIAGNOSIS_CAUSE`, `DIAGNOSIS_ACTION`, `VLLM_IMAGE_SOURCE`, `ENDPOINT`.
 HuggingFace tokens are handled by a masked flow; wait for `HF_SECRET_READY:<secret-name>`.
@@ -174,8 +146,8 @@ user, then `--action delete --confirm`. `--purge-storage` only after explicit us
 
 `sre/openshift-operations/` (in the SRE tree) — safely investigate OpenShift cluster, node,
 operator, upgrade, and workload problems using **read-only evidence before approved
-remediation**. Pair with `kubernetes/cluster-operations/openshift-popeye-analysis/` for
-automated health scanning.
+remediation**. Pair with `kubernetes/kubernetes-troubleshooting/` for pod-level failure
+diagnosis and `kubernetes/cluster-security-audit/` to verify security findings.
 
 ---
 
@@ -261,11 +233,13 @@ name. Use them for quick, conventional configs; for deep work use the full skill
 | You need to... | Load |
 | --- | --- |
 | Debug a pod/workload | `kubernetes/kubernetes-troubleshooting/` → `kubernetes/kubernetes-skill/` (failure modes) |
-| Check cluster health | `kubernetes/cluster-operations/k8s-troubleshooting/` (K8s) or `.../openshift-popeye-analysis/` (OCP) |
-| Upgrade/administer a cluster | `kubernetes/cluster-operations/cluster-ops/` + `k8s-operations/` |
-| Write or validate manifests | `kubernetes/cluster-operations/k8s-manifests/` or `platform-automation/k8s-manifest-generator/` |
-| Set up GitOps | `kubernetes/cluster-operations/k8s-gitops/` or `platform-automation/gitops-workflow/` |
-| Harden a cluster | `kubernetes/cluster-operations/k8s-security/` + `platform-automation/k8s-security-policies/` |
+| Check cluster health | `kubernetes/kubernetes-troubleshooting/` (workloads) → `kubernetes/kubernetes-skill/` (failure-mode playbooks) |
+| Audit security / RBAC / SCCs | `kubernetes/cluster-security-audit/` (audit) → `platform-automation/k8s-security-policies/` (author fixes) |
+| Fix a stuck or drifting GitOps app | `kubernetes/gitops-troubleshooting/` (setup: `platform-automation/gitops-workflow/`) |
+| Upgrade/administer a cluster | `kubernetes/fundamentals/k8s/` + platform GitOps repo |
+| Write or validate manifests | `kubernetes/kubernetes-patterns/` or `platform-automation/k8s-manifest-generator/` |
+| Set up GitOps | `platform-automation/gitops-workflow/` |
+| Harden a cluster | `kubernetes/cluster-security-audit/` (audit) + `platform-automation/k8s-security-policies/` (fix) |
 | Deploy an LLM on OpenShift GPUs | `openshift/openshift-llm-deploy/` (only path — never hand-roll) |
 | Investigate an OCP problem | `sre/openshift-operations/` (read-only first) |
 | Respond to an incident | `sre/incident-response/` → `sre/incident-responder/` → `sre/incident-commander/` |

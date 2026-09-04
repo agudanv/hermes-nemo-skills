@@ -4,6 +4,7 @@ description: Fix Hermes compatibility issues on Windows - fcntl module errors, f
 tags: [windows, compatibility, hermes, fcntl, msvcrt, file-locking]
 created: 2026-04-08
 updated: 2026-04-08
+license: Apache-2.0
 ---
 
 # Hermes Windows Compatibility Fix
@@ -92,21 +93,21 @@ def get_running_pid():
     pid_file = _pid_file_path()
     if not pid_file.exists():
         return None
-    
+
     try:
         with open(pid_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
-        
+
         pid = data.get('pid')
         started_at = data.get('started_at', 0)
-        
+
         if not pid:
             return None
-        
+
         # On Windows, check if PID file was recently modified
         file_mtime = pid_file.stat().st_mtime
         current_time = time.time()
-        
+
         # If file modified in last 5 minutes, assume process is running
         if current_time - file_mtime < 300:  # 5 minutes
             return pid
@@ -114,7 +115,7 @@ def get_running_pid():
             # File is stale, remove it
             remove_pid_file()
             return None
-            
+
     except (json.JSONDecodeError, OSError):
         return None
 ```

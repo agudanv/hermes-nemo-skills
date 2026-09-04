@@ -36,14 +36,11 @@ Talk to Notion two ways. Same integration token works for both — pick by what'
    ```
 4. **Share target pages/databases with the integration** in Notion: page menu `...` → `Connect to` → your integration name. Without this, the API returns 404 for that page even though it exists.
 
-### 2. Install `ntn` (preferred path on macOS / Linux)
+### 2. Install `ntn` (preferred path on Linux)
 
 ```bash
-# Recommended
-curl -fsSL https://ntn.dev | bash
-
-# Or via npm (needs Node 22+, npm 10+)
-npm install --global ntn
+# Via npm (needs Node 22+, npm 10+) — pin a released version
+npm install --global ntn@<version>
 
 ntn --version    # verify
 ```

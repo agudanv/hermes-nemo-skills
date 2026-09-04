@@ -60,5 +60,5 @@ python scripts/fetch_clawfeed.py -t weekly
 
 ---
 
-**Author**: 小溪 (adminlove520)  
+**Author**: 小溪 (adminlove520)
 **Version**: 1.0.1

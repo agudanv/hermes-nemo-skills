@@ -1,6 +1,7 @@
 ---
 name: agent-self-improving-agent-custom
 description: "Autonomous agent that continuously improves its own capabilities through reflection, experimentation, and learning. Builds upon the Evolver meta-skill with additional focus on goal-directed self-modification, capability expansion, and performance optimization."
+license: Apache-2.0
 ---
 
 # Self-Improving Agent — Continuous Autonomous Enhancement
@@ -131,18 +132,18 @@ self_improving:
     frequency: "weekly"  # or: daily, monthly, on_demand
     duration_hours: 4
     resource_limit: "10% of monthly budget"
-  
+
   goal_categories:
     - performance: ["speed", "accuracy", "cost"]
     - capabilities: ["new_skills", "tool_integration", "knowledge"]
     - usability: ["response_quality", "helpfulness", "efficiency"]
-  
+
   experiment_safety:
     max_concurrent: 3
     timeout_minutes: 60
     rollback_automatically: true
     require_approval_for: ["external_apis", "system_changes"]
-  
+
   reporting:
     improvement_log: "~/.openclaw/workspace/memory/improvements.md"
     metrics_dashboard: true

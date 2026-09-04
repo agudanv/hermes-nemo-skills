@@ -1,6 +1,7 @@
 ---
 name: openshift-llm-deploy
 description: Use when inspecting GPU/model capacity, live GPU utilization, GPU memory, power or temperature telemetry, model serving metrics such as queue depth, KV-cache usage or request latency, Prometheus/Thanos metric queries, model Routes or NodePorts, OpenShell Sandboxes, Kata/confidential pods, Nemoclaw deployments, or deploying, verifying, inventorying, or removing a Hugging Face model on the Kubernetes or OpenShift cluster hosting this Hermes sandbox.
+license: Apache-2.0
 ---
 
 # Local Cluster LLM Deployment

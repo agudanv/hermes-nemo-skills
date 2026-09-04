@@ -2,6 +2,7 @@
 name: agent-graphify
 description: AI coding assistant skill that turns any folder of code, docs, papers, or images into a queryable knowledge graph. Uses Claude vision to extract concepts and relationships, supports 20+ programming languages via tree-sitter AST.
 tags: [code-analysis, knowledge-graph, documentation, visualization, ast]
+license: Apache-2.0
 ---
 
 # Graphify Skill

@@ -1,6 +1,7 @@
 ---
 name: loki
 description: Guide for implementing Grafana Loki - a horizontally scalable, highly available log aggregation system. Use when configuring Loki deployments, setting up storage backends (S3, Azure Blob, GCS), writing LogQL queries, configuring retention and compaction, deploying via Helm, integrating with OpenTelemetry, or troubleshooting Loki issues on Kubernetes.
+license: Apache-2.0
 ---
 
 # Grafana Loki Skill

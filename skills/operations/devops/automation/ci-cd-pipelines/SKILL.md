@@ -1,6 +1,7 @@
 ---
 name: devops-automation-ci-cd-pipelines
 description: CI/CD pipeline patterns for GitHub Actions, GitLab CI, testing strategies, and deployment automation
+license: Apache-2.0
 ---
 
 # CI/CD Pipelines

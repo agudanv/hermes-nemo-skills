@@ -1,6 +1,7 @@
 ---
 name: devops-automation-continuous-learning
 description: Auto-extract patterns from coding sessions, track corrections, and build reusable knowledge with confidence scoring
+license: Apache-2.0
 ---
 
 # Continuous Learning

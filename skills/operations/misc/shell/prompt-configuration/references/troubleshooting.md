@@ -46,11 +46,7 @@ zprof
 **Solution 1: Install Nerd Font**
 
 ```bash
-# macOS
-brew tap homebrew/cask-fonts
-brew install --cask font-meslo-lg-nerd-font
-
-# Or download manually from
+# Download from
 # https://github.com/ryanoasis/nerd-fonts/releases
 ```
 
@@ -484,8 +480,6 @@ rm ~/.config/starship.toml
 # Edit ~/.zshrc and remove: eval "$(starship init zsh)"
 
 # Uninstall
-brew uninstall starship
-# or
 rm $(which starship)
 
 exec zsh

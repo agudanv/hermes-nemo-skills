@@ -1,6 +1,7 @@
 ---
 name: argocd
 description: "Complete ArgoCD CLI and REST API skill for GitOps automation. Use when working with ArgoCD for: (1) Managing Applications - create, sync, delete, rollback, get status, wait for health, view logs, (2) ApplicationSets - templated multi-cluster deployments with generators, (3) Projects - RBAC, source/destination restrictions, sync windows, roles, (4) Repositories - add/remove Git repos, Helm charts, OCI registries, credential templates, (5) Clusters - register, rotate credentials, manage multi-cluster, (6) Accounts - generate tokens, manage users, check permissions, (7) Admin operations - export/import, settings validation, RBAC testing, notifications, (8) Troubleshooting - sync issues, health problems, connection errors. Supports both REST API (curl/HTTP) and CLI approaches with bearer token authentication."
+license: MIT
 ---
 
 # ArgoCD Skill

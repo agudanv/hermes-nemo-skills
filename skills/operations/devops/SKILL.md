@@ -1,6 +1,7 @@
 ---
 name: devops
 description: "Category root for all DevOps skills in operations/. Load this file first for any Docker/containers, CI/CD (ArgoCD, GitHub Actions, GitLab CI), GitOps, deployment patterns, cloud DevOps, troubleshooting, DevOps learning, Kanban agent workflows, webhook automation, Hermes s6 container supervision, or dev-workflow question. Each subskill below is summarized with purpose, triggers, key patterns, and a pointer to its directory for full detail."
+license: Apache-2.0
 ---
 
 # DevOps — Category Skill

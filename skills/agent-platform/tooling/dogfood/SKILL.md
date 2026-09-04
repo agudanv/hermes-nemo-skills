@@ -6,6 +6,7 @@ metadata:
   hermes:
     tags: [qa, testing, browser, web, dogfood]
     related_skills: []
+license: Apache-2.0
 ---
 
 # Dogfood: Systematic Web Application QA Testing

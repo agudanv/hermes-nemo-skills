@@ -1,6 +1,7 @@
 ---
 name: opentelemetry
 description: Implement OpenTelemetry (OTEL) observability - Collector configuration, Kubernetes deployment, traces/metrics/logs pipelines, instrumentation, and troubleshooting. Use when working with OTEL Collector, telemetry pipelines, observability infrastructure, or Kubernetes monitoring.
+license: MIT
 ---
 
 # OpenTelemetry Implementation Guide

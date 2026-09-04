@@ -3,6 +3,7 @@ name: agent-introspection-debugging
 description: Structured self-debugging workflow for AI agent failures using capture, diagnosis, contained recovery, and introspection reports.
 metadata:
   origin: ECC
+license: MIT
 ---
 
 <!-- SPDX-FileCopyrightText: 2026 Affaan Mustafa -->

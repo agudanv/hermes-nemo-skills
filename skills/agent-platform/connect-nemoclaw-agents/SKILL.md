@@ -1,6 +1,7 @@
 ---
 name: connect-nemoclaw-agents
 description: Configure and validate a restricted Slack agent-to-agent room for NemoClaw/Hermes. Use when connecting two Slack-hosted NemoClaw agents, enabling bot-authored mentions, implementing an owner-DM-to-agent-room model.info handshake, preventing peer agents or coworkers from accessing private owner data, or diagnosing why one registered agent does not answer another.
+license: Apache-2.0
 ---
 
 <!-- SPDX-FileCopyrightText: Copyright (c) 2026 PicoNVIDIA -->

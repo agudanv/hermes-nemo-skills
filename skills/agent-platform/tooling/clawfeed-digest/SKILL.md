@@ -1,6 +1,7 @@
 ---
 name: agent-clawfeed-digest
 description: Imported third-party Hermes skill. Read the document and follow its policy-safe workflow.
+license: Apache-2.0
 ---
 
 # ClawFeed Digest Fetcher

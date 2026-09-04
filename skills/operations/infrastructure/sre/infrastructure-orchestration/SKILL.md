@@ -1,6 +1,7 @@
 ---
 name: sre-infrastructure-orchestration
 description: Coordinate infrastructure, platform, SRE, deployment, and workflow work without assuming privileges or making unapproved production changes.
+license: Apache-2.0
 ---
 
 # Infrastructure Orchestration

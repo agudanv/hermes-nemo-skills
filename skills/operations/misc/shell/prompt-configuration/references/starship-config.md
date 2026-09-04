@@ -14,9 +14,6 @@ $STARSHIP_CONFIG            # Override via environment variable
 ### Package Managers
 
 ```bash
-# macOS
-brew install starship
-
 # Arch Linux
 pacman -S starship
 
@@ -30,11 +27,11 @@ winget install starship
 ### Binary Install
 
 ```bash
-# Linux/macOS
-curl -sS https://starship.rs/install.sh | sh
-
-# With specific directory
-curl -sS https://starship.rs/install.sh | sh -s -- --bin-dir ~/.local/bin
+# Linux — pinned release from GitHub (match arch to the image)
+STARSHIP_VERSION=<version>
+curl -sSL -o /tmp/starship.tar.gz \
+  "https://github.com/starship/starship/releases/download/${STARSHIP_VERSION}/starship-x86_64-unknown-linux-gnu.tar.gz"
+tar -xzf /tmp/starship.tar.gz -C /usr/local/bin starship
 ```
 
 ### Cargo

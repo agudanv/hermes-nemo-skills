@@ -1,6 +1,7 @@
 ---
 name: shell-shellcheck-configuration
 description: Master ShellCheck static analysis configuration and usage for shell script quality. Use when setting up linting infrastructure, fixing code issues, or ensuring script portability.
+license: Apache-2.0
 ---
 
 # ShellCheck Configuration and Static Analysis
@@ -31,9 +32,6 @@ ShellCheck is a static analysis tool that analyzes shell scripts and detects pro
 ### Installation
 
 ```bash
-# macOS with Homebrew
-brew install shellcheck
-
 # Ubuntu/Debian
 apt-get install shellcheck
 

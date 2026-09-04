@@ -1,6 +1,7 @@
 ---
 name: knative
 description: Knative serverless platform for Kubernetes. Use when deploying serverless workloads, configuring autoscaling (scale-to-zero), event-driven architectures, traffic management (blue-green, canary), CloudEvents routing, Brokers/Triggers/Sources, or working with Knative Serving/Eventing/Functions. Covers installation, networking (Kourier/Istio/Contour), and troubleshooting.
+license: MIT
 ---
 
 # Knative Skill
@@ -390,12 +391,11 @@ spec:
 ### CLI Installation
 
 ```bash
-# macOS
-brew install knative/client/func
-
-# Linux
-curl -sL https://github.com/knative/func/releases/latest/download/func_linux_amd64 -o func
-chmod +x func && sudo mv func /usr/local/bin/
+# Linux — pinned release binary at image-build time
+FUNC_VERSION=<version>
+curl -sL -o /tmp/func \
+  "https://github.com/knative/func/releases/download/knative-v${FUNC_VERSION}/func_linux_amd64"
+chmod +x /tmp/func && sudo mv /tmp/func /usr/local/bin/
 ```
 
 ### Function Lifecycle

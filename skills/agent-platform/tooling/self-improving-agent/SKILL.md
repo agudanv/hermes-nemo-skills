@@ -1,6 +1,7 @@
 ---
 name: agent-self-improving-agent
 description: "Autonomous agent that logs learnings, errors, and corrections to enable continuous improvement. Combines official self-improving-agent functionality with Evolver meta-skill capabilities for comprehensive self-improvement."
+license: Apache-2.0
 ---
 
 # Self-Improving Agent — Continuous Learning and Improvement
@@ -130,15 +131,15 @@ self_improvement:
   capture_errors: true
   capture_successes: true
   capture_preferences: true
-  
+
   # Storage
   learning_retention_days: 90
   max_learnings_per_file: 100
-  
+
   # Privacy
   exclude_sensitive: true
   hash_identifiable_info: true
-  
+
   # Integration
   enable_evolver_integration: true
   improvement_check_frequency: "weekly"

@@ -1,6 +1,7 @@
 ---
 name: kubernetes-troubleshooting
 description: Systematic debugging workflows for Kubernetes issues including pod failures, resource problems, and networking. Use when debugging CrashLoopBackOff, OOMKilled, ImagePullBackOff, pod not starting, k8s issues, or any Kubernetes troubleshooting.
+license: MIT
 ---
 
 <!-- SPDX-FileCopyrightText: Copyright (c) 2026 Nik Kale -->

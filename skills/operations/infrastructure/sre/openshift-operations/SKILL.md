@@ -1,6 +1,7 @@
 ---
 name: sre-openshift-operations
 description: Safely investigate OpenShift cluster, node, operator, upgrade, and workload problems using read-only evidence before approved remediation.
+license: Apache-2.0
 ---
 
 # OpenShift Operations

@@ -6,6 +6,7 @@ platforms: [linux, macos, windows]
 metadata:
   hermes:
     tags: [webhook, events, automation, integrations, notifications, push]
+license: MIT
 ---
 
 <!-- SPDX-FileCopyrightText: 2025 Nous Research -->

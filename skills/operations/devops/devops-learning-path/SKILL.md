@@ -5,6 +5,7 @@ category: operations
 risk: safe
 source: original
 date_added: "2026-07-27"
+license: Apache-2.0
 ---
 
 # DevOps Learning Path

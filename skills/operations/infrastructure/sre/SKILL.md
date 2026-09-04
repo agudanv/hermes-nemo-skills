@@ -1,3 +1,12 @@
+---
+name: sre-infrastructure-index
+description: "Index of SRE skills under operations/infrastructure/sre/: incident response family, observability stack, runbooks, production readiness, and operational foundations."
+license: Apache-2.0
+---
+
+<!-- SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+
 # SRE Skills Consolidated
 
 Unified Site Reliability Engineering skill category covering incident response, observability, runbooks, production readiness, and operational foundations.

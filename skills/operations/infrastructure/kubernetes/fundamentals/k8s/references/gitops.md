@@ -39,8 +39,11 @@ GitOps uses Git as the single source of truth for declarative infrastructure. Ch
 kubectl create namespace argocd
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
-# Install CLI
-brew install argocd
+# Install CLI — pinned release binary at image-build time
+ARGOCD_VERSION=<version>
+curl -sSL -o /usr/local/bin/argocd \
+  "https://github.com/argoproj/argo-cd/releases/download/v${ARGOCD_VERSION}/argocd-linux-amd64"
+chmod +x /usr/local/bin/argocd
 
 # Get initial admin password
 argocd admin initial-password -n argocd
@@ -308,8 +311,11 @@ argocd app get myapp | grep -E "Health|Sync"
 ### Installation
 
 ```bash
-# Install Flux CLI
-brew install fluxcd/tap/flux
+# Install Flux CLI — pinned release tarball at image-build time
+FLUX_VERSION=<version>
+curl -sSL -o /tmp/flux.tar.gz \
+  "https://github.com/fluxcd/flux2/releases/download/v${FLUX_VERSION}/flux_${FLUX_VERSION#v}_linux_amd64.tar.gz"
+tar -xzf /tmp/flux.tar.gz -C /usr/local/bin flux
 
 # Bootstrap Flux into cluster (creates Git repo structure)
 flux bootstrap github \

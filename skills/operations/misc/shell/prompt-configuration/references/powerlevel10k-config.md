@@ -341,11 +341,9 @@ exec zsh
 ### Fonts Not Displaying
 
 ```bash
-# Install Nerd Font
-brew tap homebrew/cask-fonts
-brew install --cask font-meslo-lg-nerd-font
-
-# Set in terminal emulator preferences
+# Fetch a MesloLGS Nerd Font from
+# https://github.com/ryanoasis/nerd-fonts/releases (pin a release tag),
+# then set in terminal emulator preferences
 ```
 
 ### Instant Prompt Errors

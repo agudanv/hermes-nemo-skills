@@ -1,6 +1,7 @@
 ---
 name: agent-agent-reach
 description: "Give your AI agent eyes to see the entire internet. Search and read content from 14+ platforms including Twitter/X, Reddit, YouTube, GitHub, Bilibili, XiaoHongShu (小红书), Zhihu, Weibo, Douyin, and more. One CLI, zero API fees. Transform agents from text generators to informed, data-driven reasoners with real-time web access."
+license: Apache-2.0
 ---
 
 # Agent Reach — Internet Eyes for AI Agents
@@ -207,37 +208,37 @@ agent_reach:
   cache_dir: "~/.cache/agent-reach"
   cache_ttl: 3600  # 1 hour
   max_concurrent: 3
-  
+
   # Rate limiting
   requests_per_minute: 30
   respect_robots_txt: true
-  
+
   # Privacy
   anonymize_requests: true
   clear_cookies_on_exit: false
-  
+
   # Platforms
   platforms:
     twitter:
       enabled: true
       cookies_path: "~/.agent-reach/twitter_cookies.txt"
-      
+
     reddit:
       enabled: true
       user_agent: "AgentReach/1.0"
-      
+
     youtube:
       enabled: true
       api_key: ""  # Optional
-      
+
     github:
       enabled: true
       token: ""  # Optional for higher limits
-      
+
     bilibili:
       enabled: true
       cookies_path: "~/.agent-reach/bilibili_cookies.txt"
-  
+
   # Output
   default_format: "markdown"
   include_metadata: true

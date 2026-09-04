@@ -68,9 +68,9 @@ echo "=== Database Connection Check ==="
 # Connection count
 echo -e "\n--- Connection Summary ---"
 psql -h $DB_HOST -p $DB_PORT -d $DB_NAME -c "
-SELECT state, count(*) 
-FROM pg_stat_activity 
-GROUP BY state 
+SELECT state, count(*)
+FROM pg_stat_activity
+GROUP BY state
 ORDER BY count DESC;
 "
 
@@ -78,9 +78,9 @@ ORDER BY count DESC;
 echo -e "\n--- Top Connection Consumers ---"
 psql -h $DB_HOST -p $DB_PORT -d $DB_NAME -c "
 SELECT application_name, count(*) as connections
-FROM pg_stat_activity 
+FROM pg_stat_activity
 WHERE application_name != ''
-GROUP BY application_name 
+GROUP BY application_name
 ORDER BY connections DESC
 LIMIT 10;
 "
@@ -168,7 +168,7 @@ ALLOWED_COMMANDS = {
         'safe': True
     },
     'restart': {
-        'script': './scripts/safe-restart.sh', 
+        'script': './scripts/safe-restart.sh',
         'args': ['service', 'namespace'],
         'safe': False,
         'requires_approval': True
@@ -180,24 +180,24 @@ def handle_command():
     data = request.form
     user = data.get('user_name')
     text = data.get('text', '').split()
-    
+
     if not text:
         return jsonify({'text': 'Usage: /runbook <command> <args>'})
-    
+
     command = text[0]
     args = text[1:]
-    
+
     if command not in ALLOWED_COMMANDS:
         return jsonify({'text': f'Unknown command: {command}'})
-    
+
     cmd_config = ALLOWED_COMMANDS[command]
-    
+
     # Check if approval needed
     if cmd_config.get('requires_approval') and not is_approved(user, command):
         return jsonify({
             'text': f'Command requires approval. Use /approve {command} to approve.'
         })
-    
+
     # Execute script
     try:
         result = subprocess.run(
@@ -237,7 +237,7 @@ data:
           type: restart
           maxRestarts: 3
           cooldown: 5m
-          
+
       - name: scale-on-high-cpu
         condition:
           type: metric

@@ -1,6 +1,7 @@
 ---
 name: observability-distributed-tracing
 description: Implement distributed tracing with Jaeger and Tempo to track requests across microservices and identify performance bottlenecks. Use when debugging microservices, analyzing request flows, or implementing observability for distributed systems.
+license: Apache-2.0
 ---
 
 # Distributed Tracing

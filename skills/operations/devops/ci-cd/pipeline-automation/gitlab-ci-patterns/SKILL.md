@@ -1,6 +1,7 @@
 ---
 name: cicd-pipeline-gitlab-ci-patterns
 description: Build GitLab CI/CD pipelines with multi-stage workflows, caching, and distributed runners for scalable automation. Use when implementing GitLab CI/CD, optimizing pipeline performance, or setting up automated testing and deployment.
+license: Apache-2.0
 ---
 
 # GitLab CI Patterns

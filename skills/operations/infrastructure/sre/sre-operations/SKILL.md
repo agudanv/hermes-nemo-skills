@@ -1,6 +1,7 @@
 ---
 name: sre-sre-operations
 description: Diagnose and improve service reliability using an evidence-first SRE workflow for incidents, capacity, logs, on-call runbooks, postmortems, and reliability engineering.
+license: Apache-2.0
 ---
 
 # SRE Operations

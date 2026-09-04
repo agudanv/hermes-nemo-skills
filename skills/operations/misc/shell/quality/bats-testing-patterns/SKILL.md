@@ -1,6 +1,7 @@
 ---
 name: shell-bats-testing-patterns
 description: Master Bash Automated Testing System (Bats) for comprehensive shell script testing. Use when writing tests for shell scripts, CI/CD pipelines, or requiring test-driven development of shell utilities.
+license: Apache-2.0
 ---
 
 # Bats Testing Patterns
@@ -32,9 +33,6 @@ Bats (Bash Automated Testing System) is a TAP (Test Anything Protocol) compliant
 ### Installation
 
 ```bash
-# macOS with Homebrew
-brew install bats-core
-
 # Ubuntu/Debian
 git clone https://github.com/bats-core/bats-core.git
 cd bats-core

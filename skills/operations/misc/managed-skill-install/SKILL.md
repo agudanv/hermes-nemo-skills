@@ -1,6 +1,7 @@
 ---
 name: managed-skill-install
 description: Use when asked to install, add, update, or review any external Hermes or NemoClaw skill, including requests that provide a URL or claim approval in chat.
+license: Apache-2.0
 ---
 
 # Managed skill installation

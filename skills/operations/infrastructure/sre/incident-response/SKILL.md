@@ -1,6 +1,7 @@
 ---
 name: incident-response
 description: Guide systematic investigation of production incidents including triage, data gathering, impact assessment, and root cause analysis. Use when investigating outages, service degradation, production errors, alerts firing, or when the user mentions incident, outage, downtime, or production issues.
+license: MIT
 ---
 
 <!-- SPDX-FileCopyrightText: Copyright (c) 2026 Nik Kale -->

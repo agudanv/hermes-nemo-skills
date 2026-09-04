@@ -1,6 +1,7 @@
 ---
 name: kubernetes-k8s
 description: "Kubernetes operations, troubleshooting, and platform engineering. Trigger for: kubectl, pods, deployments, services, ingress, Helm charts, K8s manifests, RBAC, pod security, network policies, CrashLoopBackOff, OOMKilled, ImagePullBackOff, node scheduling, HPA, cluster health, container debugging, rollbacks. Implicit queries: \"which apps are failing\", \"compare namespaces\", \"what is broken\", \"is everything healthy\", \"check cluster status\", \"why is my service down\", \"pod keeps restarting\", \"container out of memory\", \"set resource limits\", \"create namespace with quotas\", \"audit permissions\", \"canary deployment\", \"rolling restart\", \"scale up\", \"scale down\". Tools: kustomize, kubectl, kubelet, kubeconfig, helm, helmfile, prometheus, servicemonitor, grafana, ArgoCD, flux, gitops. Trigger even without the word Kubernetes."
+license: Apache-2.0
 ---
 
 # Kubernetes Operations & Platform Engineering

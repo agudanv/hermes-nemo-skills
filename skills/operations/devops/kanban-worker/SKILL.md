@@ -7,6 +7,7 @@ metadata:
   hermes:
     tags: [kanban, multi-agent, collaboration, workflow, pitfalls]
     related_skills: [kanban-orchestrator]
+license: MIT
 ---
 
 <!-- SPDX-FileCopyrightText: 2025 Nous Research -->

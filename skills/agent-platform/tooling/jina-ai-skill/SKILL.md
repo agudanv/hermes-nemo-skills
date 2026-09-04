@@ -1,6 +1,7 @@
 ---
 name: agent-jina-ai-skill
 description: "Fetch the markdown content of any webpage using Jina AI's Reader API (r.jina.ai), or search the web using Jina AI's Search API (s.jina.ai). Use this skill whenever you need to read a URL and get clean LLM-friendly markdown output, extract article/documentation content from a page, or search the web and retrieve rich results with content. Triggers on: read this URL, fetch this page, get the content of, what does this page say, summarize this link, search the web for, look up, or any request requiring clean markdown from a URL."
+license: Apache-2.0
 ---
 
 # Jina Reader & Search Skill

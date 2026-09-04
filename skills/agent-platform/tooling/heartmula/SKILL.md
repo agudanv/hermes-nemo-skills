@@ -6,6 +6,7 @@ metadata:
   hermes:
     tags: [music, audio, generation, ai, heartmula, heartcodec, lyrics, songs]
     related_skills: [audiocraft]
+license: Apache-2.0
 ---
 
 # HeartMuLa - Open-Source Music Generation

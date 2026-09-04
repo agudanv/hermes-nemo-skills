@@ -1,6 +1,7 @@
 ---
 name: devops-automation-devops-automation
 description: CI/CD pipeline design with GitHub Actions, Docker, Kubernetes, Helm, and GitOps patterns
+license: Apache-2.0
 ---
 
 # DevOps Automation

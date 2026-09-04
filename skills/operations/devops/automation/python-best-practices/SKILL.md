@@ -1,6 +1,7 @@
 ---
 name: devops-automation-python-best-practices
 description: Pythonic code with modern type hints, dataclasses, async patterns, packaging, and testing
+license: Apache-2.0
 ---
 
 # Python Best Practices

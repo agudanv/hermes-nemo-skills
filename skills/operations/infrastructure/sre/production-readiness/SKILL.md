@@ -1,6 +1,7 @@
 ---
 name: production-readiness
 description: Comprehensive checklist for production deployment readiness covering reliability, observability, security, and operational requirements. Use when preparing for go-live, launch readiness review, production deployment checklist, or assessing if a service is ready for production.
+license: MIT
 ---
 
 <!-- SPDX-FileCopyrightText: Copyright (c) 2026 Nik Kale -->

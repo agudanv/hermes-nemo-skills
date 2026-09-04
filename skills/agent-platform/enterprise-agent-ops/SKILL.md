@@ -3,6 +3,7 @@ name: enterprise-agent-ops
 description: Operate long-lived agent workloads with observability, security boundaries, and lifecycle management.
 metadata:
   origin: ECC
+license: MIT
 ---
 
 <!-- SPDX-FileCopyrightText: 2026 Affaan Mustafa -->

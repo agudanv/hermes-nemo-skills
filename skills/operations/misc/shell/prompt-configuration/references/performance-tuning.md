@@ -417,16 +417,6 @@ RPROMPT='%F{8}${PROMPT_RENDER_TIME}ms%f'
 
 ## Platform-Specific Tips
 
-### macOS
-
-```bash
-# Use fast git from Homebrew
-brew install git
-
-# Ensure using Homebrew git, not Xcode
-which git  # Should be /opt/homebrew/bin/git
-```
-
 ### Linux
 
 ```bash

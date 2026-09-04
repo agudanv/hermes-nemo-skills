@@ -1,6 +1,7 @@
 ---
 name: nemoclaw-skill-install
 description: Use when installing, updating, or removing a skill in Nemoclaw. Runs Skillspector evaluation first, applies the skill to the Nemoclaw skills directory via rsync, triggers a ConfigMap-annotation reload, and verifies the rollout. Triggers on: nemoclaw skill install, nemoclaw skill update, nemoclaw skill remove, skillspector gate, skill reload, chart post-install skill seeding.
+license: Apache-2.0
 ---
 # Skill: nemoclaw-skill-install
 
@@ -43,7 +44,7 @@ Installs or updates a skill in Nemoclaw after passing Skillspector evaluation.
 ## Behavior
 
 1. **Evaluate**: Run `skillspector-eval` on the skill
-2. **Check result**: 
+2. **Check result**:
    - If `recommendation: reject` → exit with error, do not proceed
    - If `recommendation: conditional` and `auto_confirm: false` → prompt for confirmation
    - If `recommendation: approve` or `auto_confirm: true` → proceed

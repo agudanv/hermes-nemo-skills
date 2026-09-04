@@ -1,6 +1,7 @@
 ---
 name: argocd-advanced
 description: Advanced ArgoCD operations beyond the core CLI/API — multi-cluster ApplicationSet generators, automated image updates, new-cluster bootstrapping, and workload onboarding via templated ApplicationSets. USE WHEN working with ApplicationSet CRDs (list, cluster, git, matrix, merge, SCM, pull request, plugin generators), configuring ArgoCD Image Updater (semver/digest/newest-build update strategies + git write-back), bootstrapping a new Kubernetes cluster into a multi-repo GitOps setup, registering clusters with proper labels for ApplicationSet targeting, onboarding a new workload via the standard ApplicationSet template, or troubleshooting any of these. For routine app sync/status/diff work use the core `argocd` skill instead.
+license: Apache-2.0
 ---
 
 # ArgoCD Advanced

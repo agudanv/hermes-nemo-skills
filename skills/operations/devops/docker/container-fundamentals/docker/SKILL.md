@@ -1,6 +1,7 @@
 ---
 name: docker-docker
 description: "Docker operations, Dockerfile best practices, Compose, and image optimization. Trigger for: Docker, Dockerfile, container, image, docker-compose, multi-stage build, layer caching, distroless, container registry, ECR, GCR, GHCR, docker build, docker run, docker exec, docker logs, volume mounts, port mapping, container networking, image optimization, BuildKit. Implicit queries: \"make my image smaller\", \"container won't start\", \"build is slow\", \"reduce image size\", \"set up local dev environment\", \"why is my container crashing\", \"optimize layers\", \"hot reload in docker\". Trigger even without the word Docker."
+license: Apache-2.0
 ---
 
 # Docker Operations & Best Practices

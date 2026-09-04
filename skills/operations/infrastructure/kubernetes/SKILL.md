@@ -1,52 +1,44 @@
+---
+name: kubernetes-infrastructure-index
+description: "Index of Kubernetes skills under operations/infrastructure/kubernetes/: fundamentals, platform automation, failure-mode analysis, troubleshooting, architecture and patterns, and first-party security/GitOps operational skills."
+license: Apache-2.0
+---
+
+<!-- SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+
 # Kubernetes Skills Consolidated
 
-Unified Kubernetes skill category covering fundamentals, operations, troubleshooting, platform management, and advanced patterns.
+Unified Kubernetes skill category covering fundamentals, platform automation,
+troubleshooting and failure analysis, security and GitOps operations, and
+advanced patterns.
 
 ## Sub-Skills
 
 ### Fundamentals
 - **fundamentals/k8s** — Core concepts: pods, services, deployments, RBAC, networking
 
-### Operations
-- **operations** — Day-2 operations: scaling, rolling updates, debugging, backup/restore
-- **cluster-operations** — Multi-cluster management, fleet operations
-  - **cluster-operations/orchestrator** — Cluster lifecycle orchestration
-  - **cluster-operations/k8s-operations** — Operational runbooks
-  - **cluster-operations/k8s-troubleshooting** — Cluster-level debugging
-  - **cluster-operations/observability** — Cluster monitoring
-  - **cluster-operations/k8s-gitops** — GitOps at cluster level
-  - **cluster-operations/cluster-dev-guidelines** — Developer guidelines
-  - **cluster-operations/k8s-security** — Cluster hardening
-  - **cluster-operations/openshift-popeye-analysis** — Popeye cluster scans
-
 ### Platform Automation
 - **platform-automation/k8s-manifest-generator** — Manifest templating
-- **platform-automation/k8s-security-policies** — PSP/OPA/Gatekeeper
+- **platform-automation/k8s-security-policies** — NetworkPolicy/PSS/RBAC authoring
 - **platform-automation/gitops-workflow** — ArgoCD/Flux patterns
 - **platform-automation/helm-chart-scaffolding** — Chart development
 
-### Platform Management
-- **platform-management/deployments** — Deployment strategies
-- **platform-management/cluster-admin** — Admin tasks, certificates, etcd
-- **platform-management/helm** — Helm 3 patterns, dependencies
-- **platform-management/docker-containers** — Container runtime config
-- **platform-management/service-mesh** — Istio/Linkerd/Cilium
-- **platform-management/monitoring** — Prometheus Operator, rules
-- **platform-management/gitops** — Repository structure, sync policies
-- **platform-management/storage-networking** — CSI, CNI, Ingress
-- **platform-management/cost-optimization** — VPA, HPA, cluster autoscaler
-- **platform-management/troubleshooting** — Systematic cluster debugging
-- **platform-management/multi-cluster** — Cluster federation
+### Failure Analysis
+- **kubernetes-skill** — 7-step failure-mode workflow with reference playbooks
+- **failure-analysis** — Condensed failure-mode triage
 
 ### Troubleshooting
 - **kubernetes-troubleshooting** — Systematic failure analysis methodology
-- **failure-analysis** — Root cause analysis for pod/node/cluster failures
+
+### Security & GitOps Operations (first-party)
+- **cluster-security-audit** — Live-cluster security audit with kubectl/oc (SCCs, RBAC escalation paths, NetworkPolicy coverage, secret hygiene)
+- **gitops-troubleshooting** — Argo CD day-2 failures: sync waves, drift, server-side-apply conflicts, rollback
 
 ### Advanced Patterns
 - **kubernetes-patterns** — Operators, controllers, CRDs, admission webhooks
 - **kubernetes-deployment** — Advanced deployment patterns
 - **kubernetes-architect** — Cluster architecture design, HA, topology
-- **kubernetes-skill** — Comprehensive K8s skill (assets, docs, references)
 - **knative** — Serverless on K8s: Serving, Eventing, Functions
 
 ## Usage
@@ -56,10 +48,10 @@ Unified Kubernetes skill category covering fundamentals, operations, troubleshoo
 skill load kubernetes
 
 # Load specific sub-skill
-skill load kubernetes.operations
-skill load kubernetes.platform-management.service-mesh
+skill load kubernetes.kubernetes-troubleshooting
+skill load kubernetes.cluster-security-audit
+skill load kubernetes.gitops-troubleshooting
 skill load kubernetes.kubernetes-patterns
-skill load kubernetes.knative
 ```
 
 ## Agent Compatibility

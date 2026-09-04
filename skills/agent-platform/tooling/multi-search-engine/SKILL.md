@@ -1,6 +1,7 @@
 ---
 name: agent-multi-search-engine
 description: "Multi-search engine integration with 17 engines (8 CN + 9 Global). Supports advanced search operators, time filters, site search, privacy engines, and WolframAlpha knowledge queries. Use when facing large amounts of search information or unknown knowledge domains. No API keys required for most engines."
+license: Apache-2.0
 ---
 
 # Multi-Search Engine — Comprehensive Web Search Integration
@@ -176,31 +177,31 @@ multi_search:
   default_engines: ["google", "duckduckgo", "baidu"]
   results_per_engine: 10
   timeout_seconds: 30
-  
+
   # Privacy settings
   use_privacy_engines: true
   clear_history_on_exit: true
   anonymize_requests: true
-  
+
   # Regional settings
   primary_region: "global"  # or: cn, eu, us
   fallback_regions: ["global", "cn"]
   auto_translate: false
-  
+
   # WolframAlpha settings
   wolfram_app_id: ""  # Optional for extended queries
   wolfram_timeout: 15
-  
+
   # Result processing
   auto_deduplicate: true
   auto_summarize: false
   summary_length: "medium"  # short, medium, long
-  
+
   # Caching
   cache_enabled: true
   cache_ttl_hours: 24
   cache_dir: "~/.cache/multi-search"
-  
+
   # Advanced
   parallel_requests: 3
   retry_failed: true
@@ -365,7 +366,7 @@ multi-search "broad field" --identify-subtopics --limit 10
 # Example custom pipeline
 pipeline = SearchPipeline()
 pipeline.add_stage("wolfram", "foundational")
-pipeline.add_stage("google", "comprehensive")  
+pipeline.add_stage("google", "comprehensive")
 pipeline.add_stage("github", "technical")
 pipeline.add_stage("arxiv", "academic")
 results = pipeline.execute("query")

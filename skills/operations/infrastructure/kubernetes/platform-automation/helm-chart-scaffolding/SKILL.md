@@ -1,6 +1,7 @@
 ---
 name: kubernetes-helm-chart-scaffolding
 description: Design, organize, and manage Helm charts for templating and packaging Kubernetes applications with reusable configurations. Use when creating Helm charts, packaging Kubernetes applications, or implementing templated deployments.
+license: Apache-2.0
 ---
 
 # Helm Chart Scaffolding

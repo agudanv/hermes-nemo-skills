@@ -48,15 +48,15 @@ def get_running_pid():
     pid_file = _pid_file_path()
     if not pid_file.exists():
         return None
-    
+
     try:
         with open(pid_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
-        
+
         pid = data.get('pid')
         if not pid:
             return None
-        
+
         # Windows 兼容检查：只检查文件是否存在，不调用 os.kill
         if sys.platform == 'win32':
             # 在 Windows 上，我们只检查 PID 文件是否有效
@@ -76,7 +76,7 @@ def get_running_pid():
                 return pid
             except (OSError, ProcessLookupError):
                 return None
-                
+
     except Exception:
         return None
 ```
@@ -101,7 +101,7 @@ SyntaxError: invalid syntax
 
 **Root Cause**: Python files may contain corrupted `logout` strings inserted into code, breaking syntax. Common patterns:
 - `selflogout` instead of `self`
-- `faillogout` instead of `failed` 
+- `faillogout` instead of `failed`
 - Broken strings across lines
 - Missing platform names like `Plogout\nlatform.logout\nSLACK:` instead of `Platform.SLACK:`
 - Standalone `logout` lines causing indentation errors
@@ -166,7 +166,7 @@ patch(mode='replace', path='/home/sap/hermes-agent/gateway/run.py',
       old_string='logger.debug("Plugin command dispatch faillogout\ned (non-fatal): %s", e)',
       new_string='logger.debug("Plugin command dispatch failed (non-fatal): %s", e)')
 
-# Fix broken platform names  
+# Fix broken platform names
 patch(mode='replace', path='/home/sap/hermes-agent/gateway/run.py',
       old_string='elif platform == Plogout\nlatform.logout\nSLACK:',
       new_string='elif platform == Platform.SLACK:')
@@ -223,15 +223,15 @@ def get_running_pid():
     pid_file = _get_pid_path()
     if not pid_file.exists():
         return None
-    
+
     try:
         with open(pid_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
-        
+
         pid = data.get('pid')
         if not pid:
             return None
-        
+
         # Windows compatible check
         if sys.platform == 'win32':
             try:
@@ -248,7 +248,7 @@ def get_running_pid():
                 return pid
             except (OSError, ProcessLookupError):
                 return None
-                
+
     except Exception:
         return None
 
@@ -263,13 +263,13 @@ def write_pid_file():
     """Write current process PID to gateway PID file."""
     pid_file = _get_pid_path()
     pid_file.parent.mkdir(parents=True, exist_ok=True)
-    
+
     data = {
         'pid': os.getpid(),
         'argv': list(sys.argv),
         'platform': sys.platform
     }
-    
+
     with open(pid_file, 'w', encoding='utf-8') as f:
         json.dump(data, f)
 
@@ -350,18 +350,18 @@ fi
    chcp 65001 >nul
    title Hermes Gateway
    color 0A
-   
+
    echo.
    echo 启动 Hermes Gateway...
    echo.
-   
+
    cd /d "C:\Users\sap\hermes-agent"
-   
+
    set PYTHONIOENCODING=utf-8
    set PYTHONUTF8=1
-   
+
    python hermes gateway
-   
+
    pause
    ```
 
@@ -371,26 +371,26 @@ fi
    chcp 65001 >nul
    title Hermes Gateway - 完全清理启动
    color 0A
-   
+
    echo ===============================================
    echo    Hermes Gateway 完全清理启动
    echo   解决所有已知问题
    echo ===============================================
    echo.
-   
+
    cd /d "C:\Users\sap\hermes-agent"
-   
+
    :: 1. 清理所有 logout 字符串
    echo [1/4] 清理文件错误...
    python -c "
    import re
-   
+
    file_path = r'gateway\\run.py'
    print('检查文件:', file_path)
-   
+
    with open(file_path, 'r', encoding='utf-8') as f:
        content = f.read()
-   
+
    # 查找并修复所有 logout 字符串
    logout_count = content.count('logout')
    if logout_count > 0:
@@ -402,45 +402,45 @@ fi
            if line.strip() == 'logout':
                continue
            cleaned_lines.append(line)
-       
+
        content = '\\n'.join(cleaned_lines)
-       
+
        with open(file_path, 'w', encoding='utf-8') as f:
            f.write(content)
-       
+
        print('修复完成！')
    else:
        print('没有找到 logout 字符串')
    "
-   
+
    :: 2. 修复 Unicode 字符
    echo [2/4] 修复 Unicode 字符...
    python -c "
    import re
-   
+
    file_path = r'gateway\\run.py'
    print('修复 Unicode 字符...')
-   
+
    with open(file_path, 'r', encoding='utf-8') as f:
        content = f.read()
-   
+
    # 简单替换所有问题字符
    content = content.replace('✓', '[OK]')
    content = content.replace('✗', '[FAIL]')
    content = content.replace('🧠', '[BRAIN]')
-   
+
    with open(file_path, 'w', encoding='utf-8') as f:
        f.write(content)
-   
+
    print('Unicode 字符已修复')
    "
-   
+
    :: 3. 清理 PID 文件
    echo [3/4] 清理状态文件...
    python -c "
    import os
    import sys
-   
+
    sys.path.insert(0, '.')
    try:
        from gateway.status import remove_pid_file, release_all_scoped_locks
@@ -450,7 +450,7 @@ fi
    except Exception as e:
        print(f'状态清理: {e}')
    "
-   
+
    :: 4. 设置环境并启动
    echo [4/4] 启动 Hermes Gateway...
    echo.
@@ -459,12 +459,12 @@ fi
    echo   按 Ctrl+C 停止程序
    echo ===============================================
    echo.
-   
+
    set PYTHONIOENCODING=utf-8
    set PYTHONUTF8=1
-   
+
    python hermes gateway
-   
+
    echo.
    echo ===============================================
    echo   Hermes Gateway 已停止
@@ -476,14 +476,14 @@ fi
    ```powershell
    $hermesPath = "C:\Users\sap\hermes-agent"
    Set-Location $hermesPath
-   
+
    # Set environment variables for UTF-8 support
    $env:PYTHONIOENCODING = "utf-8"
    $env:PYTHONUTF8 = "1"
-   
+
    # Set console to UTF-8
    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-   
+
    # Start Hermes Gateway
    python hermes gateway
    ```
@@ -492,7 +492,7 @@ fi
    ```powershell
    # Use the batch file
    .\START_HERMES.bat
-   
+
    # Or run directly
    python hermes gateway
    ```
@@ -507,7 +507,7 @@ fi
    source hermes_venv/bin/activate
    python hermes gateway
    EOF
-   
+
    chmod +x ~/start_hermes_gateway.sh
    ```
 
@@ -536,7 +536,7 @@ fi
    WARNING gateway.run: No adapter available for feishu
    ERROR gateway.run: Gateway failed to connect any configured messaging platform
    ```
-   
+
    This is expected if you haven't configured Telegram, Discord, etc.
 
 ## Platform Configuration
@@ -552,7 +552,7 @@ If you want to configure messaging platforms:
    ```bash
    # Set environment variable
    export TELEGRAM_BOT_TOKEN="your_token_here"
-   
+
    # Or add to ~/.hermes/.env
    echo "TELEGRAM_BOT_TOKEN=your_token_here" >> ~/.hermes/.env
    ```

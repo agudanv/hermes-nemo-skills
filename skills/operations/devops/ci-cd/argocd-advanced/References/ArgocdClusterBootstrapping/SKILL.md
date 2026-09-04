@@ -1,6 +1,7 @@
 ---
 name: argocd-advanced-argocd-cluster-bootstrapping
 description: Complete ArgoCD cluster bootstrapping skill for diagnosing sync failures, creating root Applications (app-of-apps), curating ApplicationSets via Kustomize, and resolving missing CRD dependencies. USE WHEN argocd bootstrap OR app-of-apps pattern OR root application OR applicationset gitops management OR argocd sync failed missing CRD OR kustomize applicationset curation OR argocd cluster onboarding.
+license: Apache-2.0
 ---
 
 # ArgoCD Cluster Bootstrapping

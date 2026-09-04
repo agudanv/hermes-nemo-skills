@@ -1,6 +1,7 @@
 ---
 name: observability-setup
 description: Guide for implementing metrics, logs, and traces in applications. Use when setting up monitoring, adding instrumentation, configuring dashboards, implementing distributed tracing, or designing alerts and SLOs.
+license: MIT
 ---
 
 <!-- SPDX-FileCopyrightText: Copyright (c) 2026 Nik Kale -->

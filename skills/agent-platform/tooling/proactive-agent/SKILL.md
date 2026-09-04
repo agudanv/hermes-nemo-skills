@@ -1,6 +1,7 @@
 ---
 name: agent-proactive-agent
 description: "Transform AI agents from task-followers into proactive partners that anticipate needs and continuously improve. Features WAL Protocol, Working Buffer, Autonomous Crons, and battle-tested patterns from the Hal Stack. Merges eleven top-rated OpenClaw skills into a single unified architecture."
+license: Apache-2.0
 ---
 
 # Proactive Agent — From Task-Follower to Anticipatory Partner
@@ -186,32 +187,32 @@ proactive_agent:
     capture_threshold: "medium"  # low|medium|high|critical
     retention_days: 30
     auto_compact: true
-  
+
   # Working Buffer
   working_buffer:
     size_kb: 4
     promotion_threshold: 3  # mentions before promotion
     persistence: "session"  # session|day|week|permanent
-  
+
   # Autonomous Crons
   crons:
     enabled: true
     max_concurrent: 2
     resource_aware: true
     user_activity_based: true
-    
+
     schedules:
       daily_review: "08:00"
       memory_cleanup: "02:00"
       skill_optimization: "weekly"
-  
+
   # Anticipation
   anticipation:
     enabled: true
     confidence_threshold: 0.7
     max_suggestions_per_hour: 3
     learning_rate: 0.1
-  
+
   # Privacy
   privacy:
     exclude_sensitive: true

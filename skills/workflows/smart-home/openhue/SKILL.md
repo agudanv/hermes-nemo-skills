@@ -27,8 +27,6 @@ Control Philips Hue lights and scenes via a Hue Bridge from the terminal.
 # Linux (pre-built binary)
 curl -sL https://github.com/openhue/openhue-cli/releases/latest/download/openhue-linux-amd64 -o ~/.local/bin/openhue && chmod +x ~/.local/bin/openhue
 
-# macOS
-brew install openhue/cli/openhue-cli
 ```
 
 First run requires pressing the button on your Hue Bridge to pair. The bridge must be on the same local network.

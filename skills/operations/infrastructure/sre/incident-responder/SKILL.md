@@ -4,6 +4,7 @@ description: Expert SRE incident responder specializing in rapid problem resolut
 risk: unknown
 source: community
 date_added: '2026-02-27'
+license: CC-BY-4.0
 ---
 
 <!-- SPDX-FileCopyrightText: 2026 Antigravity User -->

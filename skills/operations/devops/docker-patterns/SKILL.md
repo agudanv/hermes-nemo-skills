@@ -3,6 +3,7 @@ name: docker-patterns
 description: Docker and Docker Compose patterns for local development, container security, networking, volume strategies, and multi-service orchestration.
 metadata:
   origin: ECC
+license: MIT
 ---
 
 <!-- SPDX-FileCopyrightText: 2026 Affaan Mustafa -->
