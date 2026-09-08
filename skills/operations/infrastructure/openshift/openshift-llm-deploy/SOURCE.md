@@ -5,7 +5,7 @@
 
 This directory was imported without behavioral changes from:
 
-- Repository: `ssh://git@gitlab-master.nvidia.com:12051/aguda/openshell-hermes.git`
+- Repository: internal `openshell-hermes` chart repository on NVIDIA's internal GitLab instance (host, port, and repository URL redacted for public distribution)
 - Commit: `f0b83f5b48b9a0a2b13cdd50b810b574966d5642`
 - Path: `charts/hermes-webui-openshell/files/skills/openshift-llm-deploy`
 
