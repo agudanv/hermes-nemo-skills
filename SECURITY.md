@@ -65,5 +65,7 @@ Before opening a PR:
 ## Reporting a vulnerability
 
 Report suspected vulnerabilities in this bundle — a skill that leaks credentials,
-escalates privilege, or carries hidden instructions — open a public issue for a
-security report.
+escalates privilege, or carries hidden instructions — privately via GitHub's
+"Report a vulnerability" feature on the **Security** tab (enable it in repo
+settings if it is not yet active). Prefer that over public issues; a public
+issue is acceptable only for non-sensitive, already-disclosed behavior.
