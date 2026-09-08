@@ -65,8 +65,9 @@ previews without writing.
 To install manually, copy the required directory from `skills/` into the agent
 skill directory instead, then start a new Hermes session or run the bundle
 with their skills; a full install also copies the collection-level license
-files from `skills/licenses/` to `licenses/`. Repository and Finder metadata
-(`.gitignore`, `.DS_Store`) is never copied, so local installs match
+files from `skills/licenses/` to `licenses/` plus the repository's Apache-2.0
+`LICENSE` to the target root. Repository and Finder metadata (`.gitignore`,
+`.npmignore`, `.DS_Store`) is never copied, so local installs match
 npm-packaged installs file-for-file. The package installs from the git URL; once
 published to the npm registry the same command shortens to
 `npx hermes-nemo-skills`.

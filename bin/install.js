@@ -32,15 +32,16 @@ installed groups (agent-platform/, operations/, integrations/, workflows/).
 Selections compose: --group operations --skill slack-channel-finder installs
 the operations group plus that integrations skill. Groups are copied as whole
 directories; per-skill LICENSE files travel with their skills, and a full
-install also copies the collection-level license files into licenses/.
+install also copies the collection-level license files into licenses/ plus
+the repository's Apache-2.0 LICENSE at the target root.
 Every copied SKILL.md is checked for a Markdown title or frontmatter,
 matching scripts/validate-skills.sh. Repository and Finder metadata files
-(.gitignore, .DS_Store) are never copied.
+(.gitignore, .npmignore, .DS_Store) are never copied.
 `;
 
 const GROUP_EXCLUDES = new Set(['licenses']);
 const SKILL_FILE = 'SKILL.md';
-const SKIP_FILES = new Set(['.gitignore', '.DS_Store']);
+const SKIP_FILES = new Set(['.gitignore', '.npmignore', '.DS_Store']);
 
 function fail(message, code = 1) {
   console.error(`error: ${message}`);
@@ -286,6 +287,23 @@ async function main() {
       totals.skipped += stats.skipped;
       totals.failed.push(...stats.failed);
       console.log(`${opts.dryRun ? 'would install' : 'installed'} licenses -> ${dest} (${stats.files} file(s))`);
+    }
+    const rootLicense = path.join(root, 'LICENSE');
+    if (fs.existsSync(rootLicense)) {
+      const dest = path.join(target, 'LICENSE');
+      if (fs.existsSync(dest) && !opts.force) {
+        totals.skipped += 1;
+      } else {
+        totals.files += 1;
+        if (!opts.dryRun) {
+          try {
+            fs.copyFileSync(rootLicense, dest);
+          } catch (err) {
+            totals.failed.push(`${dest}: ${err.message}`);
+          }
+        }
+        console.log(`${opts.dryRun ? 'would install' : 'installed'} LICENSE -> ${dest}`);
+      }
     }
   }
 
