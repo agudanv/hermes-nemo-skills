@@ -711,8 +711,10 @@ rules:
       dependency. The message filter keeps this true: a real "Known
       Vulnerable Dependency" finding from a networked OSV.dev query would not
       match and would fail CI on purpose. The script installs the three
-      google-* OAuth helper packages at operator-initiated setup. Re-triage
-      with network access when bumping the SkillSpector pin.
+      google-* OAuth helper packages at operator-initiated setup. Networked
+      CI (run 34283821230, 2026-09-08) emitted zero SC4 findings for these
+      deps across 898 SARIF results: this rule is dormant in CI and fires
+      only in offline scans. Re-triage when bumping the pin.
 
   - id: "PE1"
     path: "skills/operations/infrastructure/sre/observability/loki/*"
