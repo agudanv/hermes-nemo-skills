@@ -64,6 +64,7 @@ previews without writing.
 
 To install manually, copy the required directory from `skills/` into the agent
 skill directory instead, then start a new Hermes session or run the bundle
+reload command. Groups are copied whole, so per-skill `LICENSE` files travel
 with their skills; a full install also copies the collection-level license
 files from `skills/licenses/` to `licenses/` plus the repository's Apache-2.0
 `LICENSE` to the target root. Repository and Finder metadata (`.gitignore`,
