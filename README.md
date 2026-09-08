@@ -30,15 +30,45 @@ subskill. [`CATALOG.md`](CATALOG.md) indexes every skill;
 - `PENDING_SOURCES.md` — requested sources that were not available on the build host.
 - `SECURITY.md` — trust model for the bundle and vulnerability reporting.
 - `scripts/validate-skills.sh` — metadata validation gate.
+- `bin/install.js` + `package.json` — the `npx` installer (plain Node.js, no dependencies).
 - `.skillspector-baseline.yaml` — reviewed security-scan findings with written justifications.
 
 ## Install
 
-Copy the required directory from `skills/` into the agent skill directory, then
-start a new Hermes session or run the bundle reload command. The directory layout
-is for browsing; Hermes discovers skill commands recursively, and all gateway
-authorization rules continue to apply. Deployment-specific credentials and policy
-configuration belong outside this repository.
+Install with `npx` (Node.js >= 16, zero dependencies):
+
+```bash
+npx github:agudanv/hermes-nemo-skills --target ~/.hermes/skills
+```
+
+The target is the skill root — the parent directory that Hermes scans, whose
+direct children are the installed groups. Resolution order: `--target <dir>`,
+`$HERMES_SKILLS_DIR`, `$HERMES_HOME/skills`, or an interactive prompt when a
+TTY is available. Existing files are skipped (pass `--force` to overwrite) and
+every copied `SKILL.md` is validated, matching `scripts/validate-skills.sh`.
+
+Inspect and install selectively:
+
+```bash
+npx github:agudanv/hermes-nemo-skills --list                        # groups + skill counts
+npx github:agudanv/hermes-nemo-skills --group operations           # one group (repeatable)
+npx github:agudanv/hermes-nemo-skills --skill openshift-llm-deploy  # only the named skill(s)
+npx github:agudanv/hermes-nemo-skills --group operations --skill slack-channel-finder
+```
+
+Selections compose: `--skill` always searches all groups, so it adds cross-group
+skills on top of a `--group` selection. Named skills install under their full
+group/category path (`operations/infrastructure/openshift/openshift-llm-deploy`),
+so they overlay cleanly on top of or under a later group install. `--dry-run`
+previews without writing.
+
+To install manually, copy the required directory from `skills/` into the agent
+skill directory instead, then start a new Hermes session or run the bundle
+reload command. Groups are copied whole, so per-skill `LICENSE` files travel
+with their skills; `skills/licenses/` (collection-level files) is not a group
+and is not selected by default. The package installs from the git URL; once
+published to the npm registry the same command shortens to
+`npx hermes-nemo-skills`.
 
 Validate a tree before publishing or installation:
 
@@ -47,6 +77,10 @@ scripts/validate-skills.sh [skills-root]
 ```
 
 The script exits non-zero if any `SKILL.md` is missing its Markdown title.
+
+Hermes discovers skill commands recursively, and all gateway authorization
+rules continue to apply. Deployment-specific credentials and policy
+configuration belong outside this repository.
 
 ## Security
 
