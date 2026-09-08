@@ -25,7 +25,11 @@ jobs:
           python-version: '3.12'
 
       - name: Install SkillSpector
-        run: pip install "git+https://github.com/NVIDIA/skillspector.git"
+        # Pinned to an exact release tag so the analyzers match what this
+        # baseline was triaged against (scanner drift between releases
+        # changed the findings). Bump deliberately and re-triage the
+        # baseline, per its header comment.
+        run: pip install "git+https://github.com/NVIDIA/skillspector.git@v2.11.1"
 
       - name: Validate skill metadata
         run: bash scripts/validate-skills.sh

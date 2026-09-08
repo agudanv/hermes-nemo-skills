@@ -21,6 +21,12 @@
 # Re-triage this file whenever a new skill category is added. Review what it is
 # currently hiding with:
 #   skillspector scan . --recursive --baseline .skillspector-baseline.yaml --show-suppressed
+#
+# Scanner pin: .github/workflows/skillspector.yml installs a pinned release
+# tag for reproducible triage. When bumping that pin, re-scan with
+# --show-suppressed and re-triage all new unsuppressed findings before
+# merging (the v2.9 -> v2.11.1 drift surfaced ~60 such findings on
+# 2026-09-08).
 
 version: 2
 
@@ -443,3 +449,278 @@ rules:
       Caret ranges in the vendored kubernetes-skill documentation site's
       devDependencies (honkit, gitbook-plugin-search-pro). This package.json
       builds docs only and ships no runtime code into the agent.
+
+  # --- Re-triage of findings surfaced by the v2.9 -> v2.11.1 scanner bump ---
+  # Analyzers added or widened between those releases (agent-config snooping,
+  # anti-refusal, unbounded output, external-model selection, rug-pull, and
+  # artifact-integrity checks) re-fired on documentation already reviewed
+  # under the older ruleset. Every finding below was re-read at the flagged
+  # line and classified before being added here.
+
+  - id: "PE3"
+    path: ".gitignore"
+    reason: >-
+      The repository .gitignore lists ".env" precisely so credential files are
+      excluded from the repository. Naming a credential path in an ignore
+      list is the control, not the risk.
+
+  - id: "RA1"
+    path: "bin/install.js"
+    reason: >-
+      The matched "--force" is the installer's documented usage text: with
+      --force it overwrites files in the operator-chosen --target directory
+      (the default mode skips and reports). The installer never modifies its
+      own source, agent configuration, or anything outside --target.
+
+  - id: "RP1"
+    path: "README.md"
+    reason: >-
+      `npx github:agudanv/hermes-nemo-skills` is the documented one-line
+      install of this repository itself; no tags exist yet to pin to, and the
+      code the command fetches is the source reviewed in this repo, not a
+      third-party package.
+
+  - id: "EA5"
+    path: "skills/agent-platform/autonomous-ai-agents/claude-code/SKILL.md"
+    reason: >-
+      `claude -p ... --output-format stream-json` examples document the
+      operator's own Claude Code CLI session, which is this reference
+      skill's subject matter. No skill in this bundle spawns a model or
+      provider on its own.
+
+  - id: "AS1"
+    path: "skills/agent-platform/autonomous-ai-agents/claude-code/SKILL.md"
+    reason: >-
+      `.claude/settings.json` is cited as the location of Claude Code's own
+      configuration hierarchy (project vs. user scope) in the CLI reference
+      documentation. No skill code here reads or writes those paths.
+
+  - id: "EA5"
+    path: "skills/agent-platform/tooling/gguf/SKILL.md"
+    reason: >-
+      `./llama-cli -m <model>.gguf` runs a local GGUF model — the skill's
+      stated purpose. No external or separately-billed provider is
+      contacted.
+
+  - id: "EA5"
+    path: "skills/agent-platform/tooling/llama-cpp/SKILL.md"
+    reason: >-
+      `./llama-cli` hybrid CPU+GPU inference examples are local-model usage,
+      this skill's subject matter. No external provider.
+
+  - id: "EA5"
+    path: "skills/agent-platform/tooling/hermes-windows-setup-and-provider-config/SKILL.md"
+    reason: >-
+      `hermes setup --model <provider> --force` is the documented first-run
+      command where the OPERATOR selects their own provider. The skill is the
+      setup guide for that agent CLI, not an autonomous model switcher.
+
+  - id: "AS1"
+    path: "skills/operations/devops/automation/manage-skills/SKILL.md"
+    reason: >-
+      `find ~/.agents/skills ~/.claude/skills ...` is the documented
+      read-only discovery procedure for skills the operator already installed
+      across agent platforms. No configuration is written.
+
+  - id: "AS2"
+    path: "skills/agent-platform/tooling/mcporter/SKILL.md"
+    reason: >-
+      `mcporter list` is the documented way to enumerate MCP servers already
+      configured on the operator's machine. Read-only and operator-initiated.
+
+  - id: "AR1"
+    path: "skills/agent-platform/tooling/axolotl/references/api.md"
+    reason: >-
+      The matched text is Llama2's stock chat system prompt
+      (prompt_strategies.llama2_chat) inside the vendored Axolotl API
+      reference, preserved for provenance under SOURCE_NOTICES.md. It is
+      reference data about prompt templates, not an instruction to an agent.
+
+  - id: "AR2"
+    path: "skills/operations/devops/docker/container-fundamentals/docker/references/dockerfile.md"
+    reason: >-
+      "# Bad: unpredictable, changes without warning" is an anti-pattern
+      callout teaching operators to pin base images; the doc argues against
+      the behavior the analyzer keys on.
+
+  - id: "AR2"
+    path: "skills/operations/infrastructure/kubernetes/*/network-exposure.md"
+    reason: >-
+      "no error, no warning, no log entry" describes the silent
+      Service-selector failure mode these reference files teach operators to
+      detect. The phrasing documents the symptom; it is not an instruction to
+      suppress warnings.
+
+  - id: "AR2"
+    path: "skills/operations/infrastructure/kubernetes/kubernetes-skill/docs/failure-modes/*.md"
+    reason: >-
+      api-drift and resource-starvation are failure-mode curriculum whose
+      body text is the silent-failure phrasing the analyzer keys on ("the
+      patch silently applies", "no throttling, no warning").
+
+  - id: "PE4"
+    path: "skills/operations/devops/docker-expert/SKILL.md"
+    reason: >-
+      `docker run -v /var/run/docker.sock ... aquasec/trivy` is the documented
+      pattern for running the Trivy image scanner against the host daemon.
+      The mount exists only for that operator-initiated scan.
+
+  - id: "SSRF2"
+    path: "skills/operations/devops/docker/container-fundamentals/docker/references/dockerfile.md"
+    reason: >-
+      HEALTHCHECK examples probe http://localhost:8000/health — the
+      self-referential loopback health-check idiom Docker itself documents.
+      Not an internal-network pivot.
+
+  - id: "SSRF2"
+    path: "skills/operations/devops/deployment-patterns/SKILL.md"
+    reason: >-
+      Same idiom: a HEALTHCHECK urllib probe of the container's own loopback
+      port. Not an internal-network pivot.
+
+  - id: "OH3"
+    path: "skills/agent-platform/tooling/axolotl/references/api.md"
+    reason: >-
+      `max_length=None` appears as the documented default of Axolotl's
+      tokenizer/collator API in the vendored reference. Nothing here
+      generates unbounded output at runtime.
+
+  - id: "OH3"
+    path: "skills/agent-platform/tooling/pytorch-fsdp/references/other.md"
+    reason: >-
+      Vendored PyTorch DTensor.full() API reference ("the value to fill the
+      output tensor with") — it describes a function argument, not unbounded
+      generation.
+
+  - id: "OH3"
+    path: "skills/operations/devops/ci-cd/argocd-advanced/References/applicationset.md"
+    reason: >-
+      "slugify — Smart truncation without cutting words" documents an ArgoCD
+      template function that bounds generated names; the matched phrase
+      describes bounded behavior.
+
+  - id: "EA4"
+    path: "skills/agent-platform/tooling/pytorch-fsdp/SKILL.md"
+    reason: >-
+      Matches vendored PyTorch documentation headings pasted as pattern
+      summaries (torch.distributed "Created On ... Last Updated" headers,
+      Initialization/Groups sections). Reference text, not resource use.
+
+  - id: "EA4"
+    path: "skills/agent-platform/tooling/remotion-best-practices/rules/gifs.md"
+    reason: >-
+      "// Loop indefinitely (default)" is the GIF animation loop parameter
+      of Remotion's AnimatedImage; bounded media semantics, not unbounded
+      resource consumption.
+
+  - id: "EA4"
+    path: "skills/workflows/software-development/subagent-driven-development/references/gates-taxonomy.md"
+    reason: >-
+      The revision-loop gate is explicitly bounded ("iteration cap
+      (typically 3)", "escalates ... between consecutive iterations") — the
+      opposite of unbounded resource access.
+
+  - id: "P7"
+    path: "skills/agent-platform/tooling/stable-diffusion/references/advanced-usage.md"
+    reason: >-
+      "Encode prompt" is the Stable Diffusion tokenizer call in an inference
+      example — encoding the operator's own generation prompt, not extracting
+      an agent system prompt.
+
+  - id: "E3"
+    path: "skills/integrations/github/github-auth/SKILL.md"
+    reason: >-
+      `ls -la ~/.ssh/id_*.pub` lists PUBLIC key filenames so the operator can
+      pick one during GitHub auth setup. Extension .pub only; no private key
+      material is read.
+
+  - id: "E3"
+    path: "skills/operations/misc/shell/prompt-configuration/references/troubleshooting.md"
+    reason: >-
+      Documented zsh-prompt debugging on the operator's own dotfiles
+      (`cat ~/.p10k.zsh | head -50`, `ls ~/.cache/gitstatus/`), run
+      interactively by the operator.
+
+  - id: "E5"
+    path: "skills/operations/infrastructure/kubernetes/platform-automation/helm-chart-scaffolding/SKILL.md"
+    reason: >-
+      `aws s3 sync` publishing a built chart to the operator's own chart
+      repository bucket (s3://my-helm-charts/) is the documented Helm repo
+      pattern; the sync carries only *.tgz and index.yaml from the chart
+      directory.
+
+  - id: "AE4"
+    path: "skills/operations/infrastructure/sre/observability/prometheus/references/promql_functions.md"
+    reason: >-
+      The file's only non-ASCII characters are two Greek phi glyphs in
+      legitimate phase/histogram notation. Verified to contain no
+      zero-width, bidi, or control characters (elsewhere those were stripped
+      from source rather than suppressed).
+
+  - id: "AE5"
+    path: "skills/agent-platform/tooling/unsloth/references/llms-full.md"
+    reason: >-
+      llms-full.md is a ~15k-line verbatim mirror of upstream Unsloth docs
+      (provenance under SOURCE_NOTICES.md; cf. the YR1 rule); it exceeds
+      whole-file analysis limits by construction and is read as reference
+      text, never executed.
+
+  - id: "P4"
+    path: "skills/workflows/creative/touchdesigner-mcp/references/pitfalls.md"
+    reason: >-
+      "Always prefer native MCP tools over td_execute_python" is a
+      tool-selection preference in the reference's own guidance section
+      (which TouchDesigner API to use), the same shape as the opencli P4
+      rule above — not an attempt to override agent behavior globally.
+
+  - id: "EA2"
+    path: "skills/operations/misc/nemoclaw-skill-install/scripts/nemoclaw-skill-install.sh"
+    reason: >-
+      The matches are the installer's human-in-the-loop interlock itself:
+      auto_confirm defaults to false and the flagged branch gates
+      "conditional" evaluations on explicit operator confirmation before
+      installing. This is the control the rule wants present, not a bypass.
+
+  - id: "PE5"
+    path: "skills/operations/misc/skillspector-eval/scripts/skillspector-eval.sh"
+    reason: >-
+      The flagged "privileged" text is the harness's own DETECTION regex —
+      it greps evaluated skills for `privileged: true|cap_add` patterns to
+      score them (cf. the image-audit.sh TM1 rule). The harness never
+      launches a privileged container.
+
+  - id: "TM4"
+    path: "skills/operations/misc/skillspector-eval/scripts/skillspector-eval.sh"
+    reason: >-
+      Same detection regex as the PE5 rule above: the eval harness quotes
+      `privileged: true|cap_add` to detect the pattern in skills under
+      evaluation. The harness deploys no workload.
+
+  - id: "TM1"
+    path: "skills/operations/misc/skillspector-eval/scripts/skillspector-eval.sh"
+    reason: >-
+      `rm -f /tmp/sandbox-result.json` deletes the harness's own scratch
+      result file written earlier in the same run; fixed path, no globbing.
+
+  - id: "SC4"
+    path: "skills/agent-platform/tooling/google-workspace/scripts/setup.py"
+    reason: >-
+      The finding is the analyzer's OSV.dev-unreachable fallback notice: it
+      appears when the network is unavailable, not from a specific vulnerable
+      dependency. The script installs the three google-* OAuth helper
+      packages at operator-initiated setup. Re-triage with network access
+      when bumping the SkillSpector pin.
+
+  - id: "PE1"
+    path: "skills/operations/infrastructure/sre/observability/loki/*"
+    reason: >-
+      "Grant Storage Permission / Required IAM Permissions" sections document
+      the least-privilege policies needed to run Loki on S3 — setup
+      instructions for the operator's own stack, not privilege escalation.
+
+  - id: "PE1"
+    path: "skills/operations/devops/ci-cd/argocd-advanced/References/applicationset/troubleshooting/troubleshooting.md"
+    reason: >-
+      "Verify Token Permissions / Fix AppProject Permissions" headings are
+      ArgoCD troubleshooting walkthroughs for the operator's own cluster
+      resources.
