@@ -704,12 +704,15 @@ rules:
 
   - id: "SC4"
     path: "skills/agent-platform/tooling/google-workspace/scripts/setup.py"
+    message: "*OSV.dev unreachable*"
     reason: >-
       The finding is the analyzer's OSV.dev-unreachable fallback notice: it
       appears when the network is unavailable, not from a specific vulnerable
-      dependency. The script installs the three google-* OAuth helper
-      packages at operator-initiated setup. Re-triage with network access
-      when bumping the SkillSpector pin.
+      dependency. The message filter keeps this true: a real "Known
+      Vulnerable Dependency" finding from a networked OSV.dev query would not
+      match and would fail CI on purpose. The script installs the three
+      google-* OAuth helper packages at operator-initiated setup. Re-triage
+      with network access when bumping the SkillSpector pin.
 
   - id: "PE1"
     path: "skills/operations/infrastructure/sre/observability/loki/*"
