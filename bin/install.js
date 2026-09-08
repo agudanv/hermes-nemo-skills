@@ -31,13 +31,16 @@ The target is the skill root: the directory whose direct children are the
 installed groups (agent-platform/, operations/, integrations/, workflows/).
 Selections compose: --group operations --skill slack-channel-finder installs
 the operations group plus that integrations skill. Groups are copied as whole
-directories; per-skill LICENSE files travel with their skills. Every copied
-SKILL.md is checked for a Markdown title or frontmatter, matching
-scripts/validate-skills.sh.
+directories; per-skill LICENSE files travel with their skills, and a full
+install also copies the collection-level license files into licenses/.
+Every copied SKILL.md is checked for a Markdown title or frontmatter,
+matching scripts/validate-skills.sh. Repository and Finder metadata files
+(.gitignore, .DS_Store) are never copied.
 `;
 
 const GROUP_EXCLUDES = new Set(['licenses']);
 const SKILL_FILE = 'SKILL.md';
+const SKIP_FILES = new Set(['.gitignore', '.DS_Store']);
 
 function fail(message, code = 1) {
   console.error(`error: ${message}`);
@@ -156,6 +159,7 @@ function copyTree(src, dest, opts) {
   const stats = { files: 0, skills: 0, skipped: 0, failed: [] };
   fs.mkdirSync(dest, { recursive: true });
   for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
+    if (SKIP_FILES.has(entry.name)) continue;
     const srcPath = path.join(src, entry.name);
     const destPath = path.join(dest, entry.name);
     if (entry.isDirectory()) {
@@ -241,6 +245,8 @@ async function main() {
       fail(`no skill named '${name}' found in any group (${groups.join(', ')})`, 2);
     }
     for (const hit of hits) {
+      // A skill inside an already-selected group is covered by that group's copy.
+      if (!onlySkills && selectedGroups.includes(hit.group)) continue;
       const key = `${hit.group}/${hit.rel}`;
       if (seen.has(key)) continue;
       seen.add(key);
@@ -268,6 +274,19 @@ async function main() {
       `(${stats.files} file(s), ${stats.skills} skill(s)` +
       `${stats.skipped ? `, ${stats.skipped} skipped` : ''})`,
     );
+  }
+
+  // A full (unscoped) install also ships the collection-level license files.
+  if (!opts.groups.length && !opts.skills.length) {
+    const licensesSrc = path.join(skillsRoot, 'licenses');
+    if (fs.existsSync(licensesSrc)) {
+      const dest = path.join(target, 'licenses');
+      const stats = copyTree(licensesSrc, dest, opts);
+      totals.files += stats.files;
+      totals.skipped += stats.skipped;
+      totals.failed.push(...stats.failed);
+      console.log(`${opts.dryRun ? 'would install' : 'installed'} licenses -> ${dest} (${stats.files} file(s))`);
+    }
   }
 
   let invalid = 0;
