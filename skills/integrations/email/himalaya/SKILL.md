@@ -35,14 +35,12 @@ Himalaya is a CLI email client that lets you manage emails from the terminal usi
 ### Installation
 
 ```bash
-# Pre-built binary (Linux/macOS — recommended)
-curl -sSL https://raw.githubusercontent.com/pimalaya/himalaya/master/install.sh | PREFIX=~/.local sh
-
-# macOS via Homebrew
-brew install himalaya
-
-# Or via cargo (any platform with Rust)
+# Via cargo (build is locked by the upstream Cargo.lock; any platform with Rust)
 cargo install himalaya --locked
+
+# Or a release binary pinned at image-build time from
+# https://github.com/pimalaya/himalaya/releases — pick the asset matching
+# the image platform, verify its checksum, and place it on PATH
 ```
 
 ## Configuration Setup

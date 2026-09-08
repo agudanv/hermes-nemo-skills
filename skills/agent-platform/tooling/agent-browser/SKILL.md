@@ -1,6 +1,7 @@
 ---
 name: agent-agent-browser
 description: "A headless browser automation CLI that lets AI agents control web pages through structured commands. Enables navigation, interaction, and data capture across pages. Use when the agent needs to automate web tasks, scrape data, fill forms, click elements, take screenshots, or interact with dynamic web applications. Trigger on phrases like 'browse to', 'click the', 'fill form', 'scrape data', 'take screenshot', or 'automate web task'."
+license: Apache-2.0
 ---
 
 # Agent Browser — Headless Web Automation
@@ -177,7 +178,7 @@ echo "Browse to example.com and take screenshot" | openclaw
 # Basic navigation
 goto <url>                    # Navigate to URL
 back                         # Go back
-forward                      # Go forward  
+forward                      # Go forward
 reload                       # Reload page
 wait <ms>                    # Wait milliseconds
 wait <selector>              # Wait for element
@@ -248,7 +249,7 @@ agent-browser click "button[data-testid='submit']"  # Good: data attribute
 agent-browser click "button#login-button"           # Good: ID selector
 agent-browser click "text=Submit"                   # Good: text content
 
-# Avoid fragile selectors  
+# Avoid fragile selectors
 agent-browser click "div:nth-child(3) > button"     # Bad: positional
 agent-browser click "button.btn-primary"            # Caution: may change
 ```
@@ -323,7 +324,7 @@ for url in search_results:
 # Distributed web automation team
 def create_browser_team():
     """Create team for web automation tasks"""
-    
+
     team = {
         "navigator": {
             "role": "Navigate to URLs and handle page loading",
@@ -342,7 +343,7 @@ def create_browser_team():
             "commands": ["validate", "retry", "fallback"]
         }
     }
-    
+
     return team
 ```
 
@@ -351,7 +352,7 @@ def create_browser_team():
 # Learn from browser automation patterns
 def learn_browser_patterns():
     """Record successful browser interaction patterns"""
-    
+
     patterns = {
         "login_flow": {
             "steps": [
@@ -377,7 +378,7 @@ def learn_browser_patterns():
             "average_time": 12.5
         }
     }
-    
+
     return patterns
 ```
 
@@ -485,7 +486,7 @@ if [ $? -eq 0 ]; then
 else
     echo "✗ Registration test failed"
     agent-browser screenshot --output "registration_failure_$(date +%Y%m%d).png"
-    
+
     # Check for error messages
     agent-browser text ".error-message" --output error.txt
     echo "Error: $(cat error.txt)"
@@ -503,14 +504,14 @@ agent_browser:
     headless: true
     window_size: "1920x1080"
     user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-    
+
   # Performance
   performance:
     timeout: 30000  # milliseconds
     wait_time: 2000  # default wait after actions
     retry_attempts: 3
     delay_between_retries: 1000
-    
+
   # Stealth & evasion
   stealth:
     disable_images: false
@@ -518,29 +519,29 @@ agent_browser:
     random_delays: true
     min_delay: 100
     max_delay: 3000
-    
+
   # Screenshots
   screenshots:
     default_format: "png"
     default_quality: 90
     directory: "./screenshots"
     auto_timestamp: true
-    
+
   # Logging
   logging:
     level: "info"  # debug, info, warn, error
     file: "./agent-browser.log"
     console: true
-    
+
   # Integration
   integration:
     openclaw:
       enabled: true
       auto_load: true
-      
+
     memos_sync:
       enabled: false  # Screenshots to MemOS
-      
+
     proactive_agent:
       enabled: true
       monitor_browser_sessions: true
@@ -554,10 +555,10 @@ agent_browser:
    ```bash
    # Check browser installation
    agent-browser browsers list
-   
+
    # Install missing browser
    agent-browser setup chrome
-   
+
    # Check permissions
    chmod +x $(which agent-browser)
    ```
@@ -566,10 +567,10 @@ agent_browser:
    ```bash
    # Take screenshot to see current page
    agent-browser screenshot --output debug.png
-   
+
    # List all elements matching selector
    agent-browser query "button" --all
-   
+
    # Use more specific selector
    agent-browser click "button[data-testid='submit']" --instead-of "button.submit"
    ```
@@ -578,8 +579,8 @@ agent_browser:
    ```bash
    # Increase timeout
    agent-browser config set default_timeout 60000
-   
+
    # Add explicit waits
    agent-browser wait "div.loaded" --before "click button"
-   
+
    # Check network conditions

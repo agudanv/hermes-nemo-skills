@@ -39,16 +39,12 @@ Pure C/C++ LLM inference with minimal dependencies, optimized for CPUs and non-N
 ### Installation
 
 ```bash
-# macOS/Linux
-brew install llama.cpp
-
-# Or build from source
+# Pinned prebuilt binaries are published per release; for a container
+# image, either download one at image-build time from
+# https://github.com/ggerganov/llama.cpp/releases or build from source:
 git clone https://github.com/ggerganov/llama.cpp
 cd llama.cpp
 make
-
-# With Metal (Apple Silicon)
-make LLAMA_METAL=1
 
 # With CUDA (NVIDIA)
 make LLAMA_CUDA=1
@@ -257,5 +253,3 @@ cat prompts.txt | ./llama-cli \
 - **GitHub**: https://github.com/ggerganov/llama.cpp
 - **Models**: https://huggingface.co/models?library=gguf
 - **Discord**: https://discord.gg/llama-cpp
-
-

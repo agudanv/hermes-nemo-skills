@@ -4,7 +4,7 @@ Search for WeChat Official Account (微信公众号) articles using a compliant,
 
 ## Features
 - **Compliant Design**: Prioritizes legal search APIs, respects robots.txt and rate limits
-- **Two-Layer Strategy**: 
+- **Two-Layer Strategy**:
   - Primary: Web search with `site:mp.weixin.qq.com` filter
   - Fallback: Direct page fetching with proper delays and headers
 - **Recent Results**: Returns the 5 most recent articles by default (configurable)

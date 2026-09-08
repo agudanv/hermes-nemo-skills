@@ -3,6 +3,7 @@ name: agent-remotion-best-practices
 description: Best practices for Remotion - Video creation in React
 metadata:
   tags: remotion, video, react, animation, composition
+license: Apache-2.0
 ---
 
 ## When to use

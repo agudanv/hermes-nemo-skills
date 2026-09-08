@@ -5,6 +5,7 @@ description: Comprehensive guide to troubleshooting and fixing Hermes Gateway st
 trigger: When hermes gateway fails on Windows with process check errors, Unicode encoding errors, or missing imports
 platforms: [cli, gateway]
 tags: [windows, troubleshooting, gateway, encoding]
+license: Apache-2.0
 ---
 
 # Fixing Hermes Gateway on Windows
@@ -126,24 +127,24 @@ from pathlib import Path
 
 def fix_all():
     hermes_dir = Path.cwd()
-    
+
     # 1. Set environment
     os.environ['PYTHONIOENCODING'] = 'utf-8'
     os.environ['PYTHONUTF8'] = '1'
-    
+
     # 2. Fix Unicode in gateway/run.py
     run_file = hermes_dir / "gateway" / "run.py"
     if run_file.exists():
         with open(run_file, 'r', encoding='utf-8') as f:
             content = f.read()
-        
+
         # Replace checkmarks
         if '✓' in content or '✗' in content:
             content = content.replace('✓', '[OK]').replace('✗', '[FAIL]')
             with open(run_file, 'w', encoding='utf-8') as f:
                 f.write(content)
             print("Fixed Unicode characters")
-    
+
     # 3. Clean PID file
     try:
         from hermes_constants import HERMES_HOME
@@ -153,7 +154,7 @@ def fix_all():
             print("Cleaned PID file")
     except:
         pass
-    
+
     # 4. Start gateway
     print("Starting Hermes Gateway...")
     os.system(f"{sys.executable} hermes gateway")

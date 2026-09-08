@@ -207,7 +207,7 @@ rules:
       individual skill's scope is bounded by its own SKILL.md.
 
   - id: "EA4"
-    path: "skills/operations/openshift-llm-deploy/scripts/diagnose-deployment.sh"
+    path: "skills/operations/infrastructure/openshift/openshift-llm-deploy/scripts/diagnose-deployment.sh"
     reason: >-
       "retry indefinitely" is descriptive text in a diagnostic message about a
       CrashLoopBackOff pod's restart policy. The script's own polling loop is
@@ -223,17 +223,22 @@ rules:
   - id: "RP1"
     path: "skills/*.md"
     reason: >-
-      Unpinned references are `npx`/`uvx`/`brew` invocations in human-facing
+      Unpinned references are `npx`/`uvx`/npm invocations in human-facing
       install instructions for third-party CLIs. Every `pip install git+…` in
-      this bundle's own guidance is pinned to a tag or commit SHA.
+      this bundle's own guidance is pinned to a tag or commit SHA, and
+      install docs no longer reference Homebrew (skills run in Linux
+      containers).
 
   - id: "SC2"
     path: "skills/*.md"
     message: "*curl*"
     reason: >-
       Remaining matches are curl calls against documented vendor REST APIs
-      (Linear GraphQL, Airtable) that return data, not scripts. The two cases
-      that piped a downloaded script into a shell were fixed in the source.
+      (Linear GraphQL, Airtable) that return data, not scripts. Install
+      instructions in this repository's own guidance download a pinned
+      script for review instead of piping it into a shell; the only piped
+      forms left are verbatim upstream mirrors (unsloth, axolotl reference
+      docs) preserved for provenance under SOURCE_NOTICES.md.
 
   - id: "YR1"
     path: "skills/agent-platform/tooling/unsloth/references/*"
@@ -284,14 +289,14 @@ rules:
       Executables are fixed strings (sys.executable, "gws"), not user input.
 
   - id: "PE3"
-    path: "skills/operations/ci-cd/argocd/References/command-tools/ArgoCdCli.ts"
+    path: "skills/operations/devops/ci-cd/argocd/References/command-tools/ArgoCdCli.ts"
     reason: >-
       KUBECONFIG references document the standard kubectl/ArgoCD configuration
       path that the operator already controls. The file is reference material
       describing CLI flags.
 
   - id: "TM1"
-    path: "skills/operations/ci-cd/argocd/scripts/argocd-api.sh"
+    path: "skills/operations/devops/ci-cd/argocd/scripts/argocd-api.sh"
     reason: >-
       DELETE calls are the ArgoCD REST API operations this client exists to
       expose (delete application, terminate operation, remove repository). They
@@ -299,13 +304,13 @@ rules:
       run through the agent's approval prompt.
 
   - id: "RA2"
-    path: "skills/operations/ci-cd/argocd/References/command-tools/ArgoCdCli.ts"
+    path: "skills/operations/devops/ci-cd/argocd/References/command-tools/ArgoCdCli.ts"
     reason: >-
       Matches ApplicationSet create/delete text in a CLI command reference
       table, not a persistence mechanism.
 
   - id: "TM1"
-    path: "skills/operations/docker/container-fundamentals/docker/scripts/image-audit.sh"
+    path: "skills/operations/devops/docker/container-fundamentals/docker/scripts/image-audit.sh"
     reason: >-
       "rm -rf /" is matched inside a grep PATTERN STRING that searches Docker
       image history for "rm -rf /var/lib/apt" cleanup layers. The script is
@@ -313,7 +318,7 @@ rules:
       executes the matched text.
 
   - id: "TM2"
-    path: "skills/operations/openshift-llm-deploy/scripts/verify-openai-endpoint.sh"
+    path: "skills/operations/infrastructure/openshift/openshift-llm-deploy/scripts/verify-openai-endpoint.sh"
     reason: >-
       The flagged "; rm -" is a trap handler that removes the script's own
       mktemp -d working directory on EXIT/HUP/INT/TERM. The path is a
@@ -327,14 +332,14 @@ rules:
       for release-tag lookup. No hardcoded third-party sink.
 
   - id: "E2"
-    path: "skills/operations/openshift-llm-deploy/templates/model-download-job.yaml"
+    path: "skills/operations/infrastructure/openshift/openshift-llm-deploy/templates/model-download-job.yaml"
     reason: >-
       The Job template reads the names of Kubernetes Secrets from the
       environment (HF_TOKEN_SECRET_NAME) so the operator can point it at their
       own Secret. It reads secret NAMES, not secret values.
 
   - id: "P6"
-    path: "skills/operations/observability/prometheus/scripts/prom_health.py"
+    path: "skills/operations/infrastructure/sre/observability/prometheus/scripts/prom_health.py"
     reason: >-
       "display rules" refers to printing Prometheus alerting/recording rules
       fetched from the caller's own Prometheus API.
@@ -347,7 +352,7 @@ rules:
       is expected to call them.
 
   - id: "RP1"
-    path: "skills/operations/kubernetes-skill/.github/workflows/*.yml"
+    path: "skills/operations/infrastructure/kubernetes/kubernetes-skill/.github/workflows/*.yml"
     reason: >-
       GitHub Actions reference in the vendored kubernetes-skill docs-site
       workflow. That workflow builds the upstream project's documentation and
@@ -377,7 +382,7 @@ rules:
       Hermes prompts on. This is the safety control being described.
 
   - id: "YR1"
-    path: "skills/operations/shell/prompt-configuration/SKILL.md"
+    path: "skills/operations/misc/shell/prompt-configuration/SKILL.md"
     reason: >-
       Zsh prompt-configuration guide. The rule's strings match scattered prose
       about resetting key bindings and shell history across a long document;
@@ -402,13 +407,13 @@ rules:
       presets.
 
   - id: "P2"
-    path: "skills/agent-platform/tooling/popular-web-designs/SKILL.md"
+    path: "skills/workflows/creative/popular-web-designs/SKILL.md"
     reason: >-
       An HTML comment instructing the human author to paste their Google Fonts
       link into the template.
 
   - id: "PE3"
-    path: "skills/operations/kubernetes/fundamentals/k8s/examples/helm-chart/templates/*.yaml"
+    path: "skills/operations/infrastructure/kubernetes/fundamentals/k8s/examples/helm-chart/templates/*.yaml"
     reason: >-
       Matches the literal text ".env" inside the Helm template expression
       `{{- with .Values.env }}`, which renders the chart's env block. There is
@@ -433,7 +438,7 @@ rules:
 
   # --- Vendored third-party skill --------------------------------------------
   - id: "SC1"
-    path: "skills/operations/kubernetes-skill/docs/package.json"
+    path: "skills/operations/infrastructure/kubernetes/kubernetes-skill/docs/package.json"
     reason: >-
       Caret ranges in the vendored kubernetes-skill documentation site's
       devDependencies (honkit, gitbook-plugin-search-pro). This package.json

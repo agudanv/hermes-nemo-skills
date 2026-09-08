@@ -1,9 +1,10 @@
 ---
 name: agent-collaboration
 description: Use when the authenticated owner asks this NemoClaw agent to query a registered peer agent for public model information or asks how the restricted Slack agent-room handshake works.
+license: Apache-2.0
 ---
 
-<!-- SPDX-FileCopyrightText: Copyright (c) 2026 PicoNVIDIA -->
+<!-- SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
 # Agent Collaboration

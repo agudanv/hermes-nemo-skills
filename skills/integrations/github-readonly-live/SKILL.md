@@ -1,6 +1,7 @@
 ---
 name: github-readonly-live
 description: Read the configured live GitHub repository through authenticated, policy-scoped GitHub REST GET requests.
+license: Apache-2.0
 ---
 
 # github-readonly-live

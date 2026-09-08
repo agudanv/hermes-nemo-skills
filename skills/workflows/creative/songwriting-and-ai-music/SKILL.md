@@ -11,6 +11,7 @@ triggers:
   - parody song
   - adapting a song
   - AI music generation
+license: MIT
 ---
 
 <!-- SPDX-FileCopyrightText: 2025 Nous Research -->

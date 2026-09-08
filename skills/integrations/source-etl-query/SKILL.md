@@ -1,6 +1,7 @@
 ---
 name: source-etl-query
 description: Query the host-side source-etls REST mirror for GitHub discussions, historical GitHub mirror data, and NVIDIA forums research.
+license: Apache-2.0
 ---
 
 # source-etl-query

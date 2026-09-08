@@ -4,6 +4,7 @@ description: Query Polymarket prediction market data — search markets, get pri
 version: 1.0.0
 author: Hermes Agent + Teknium
 tags: [polymarket, prediction-markets, market-data, trading]
+license: Apache-2.0
 ---
 
 # Polymarket — Prediction Market Data

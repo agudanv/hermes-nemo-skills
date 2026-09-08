@@ -1,6 +1,7 @@
 ---
 name: devops-automation-performance-optimization
 description: Web performance optimization including bundle analysis, lazy loading, caching strategies, and Core Web Vitals
+license: Apache-2.0
 ---
 
 # Performance Optimization

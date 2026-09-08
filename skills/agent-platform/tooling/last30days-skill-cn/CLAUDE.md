@@ -6,8 +6,8 @@
 
 ## 结构
 
-- `scripts/last30days.py` — 主流程：多源并行搜索、归一化、排序、去重、写报告  
-- `scripts/lib/` — 平台适配与通用能力（`env`、`http`、`normalize`、`score`、`render` 等）  
+- `scripts/last30days.py` — 主流程：多源并行搜索、归一化、排序、去重、写报告
+- `scripts/lib/` — 平台适配与通用能力（`env`、`http`、`normalize`、`score`、`render` 等）
 - `SKILL.md` — 对外技能定义（部署到各 Agent 的 skills 目录时使用）
 
 ## 命令
@@ -22,7 +22,7 @@ bash scripts/sync.sh
 
 ## 规则
 
-- `scripts/lib/__init__.py` 必须为**裸包标记**（仅注释，**禁止**在包内做 eager import）。  
+- `scripts/lib/__init__.py` 必须为**裸包标记**（仅注释，**禁止**在包内做 eager import）。
 - 修改代码后若需部署到 `~/.claude` / `~/.agents` 等，执行 `bash scripts/sync.sh`（可按需改脚本中的目标目录名以匹配 `last30days-cn`）。
 
 ## 配置

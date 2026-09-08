@@ -5,6 +5,7 @@ description: Fix Hermes Gateway startup errors on Windows and configure all majo
 trigger: When encountering Hermes Gateway startup errors on Windows, or when needing to configure multiple AI providers
 tags: [hermes, windows, gateway, providers, models, configuration]
 difficulty: intermediate
+license: Apache-2.0
 ---
 
 # Hermes Windows Setup and Provider Configuration

@@ -1,6 +1,7 @@
 ---
 name: agent-memos-sync
 description: "Synchronize OpenClaw local memory to MemOS master database. Automatically sync memory files, learning logs, preferences, and important events to the centralized MemOS instance at 100.106.127.15:8000. Supports bidirectional sync, conflict resolution, and intelligent memory management."
+license: Apache-2.0
 ---
 
 # MemOS Sync — Centralized Memory Synchronization
@@ -27,20 +28,20 @@ memos:
     api_prefix: "/product"
     timeout: 30
     retry_attempts: 3
-    
+
   # Authentication (if required)
   auth:
     enabled: false
     token: ""
     user_id: ""
-    
+
   # Sync settings
   sync:
     auto_sync: true
     sync_interval: 300  # seconds
     batch_size: 50
     max_file_size: 10485760  # 10MB
-    
+
   # Memory types to sync
   memory_types:
     - daily_notes    # memory/YYYY-MM-DD.md
@@ -49,7 +50,7 @@ memos:
     - preferences    # memory/preferences.md
     - skills         # skills/*/SKILL.md (metadata only)
     - events         # Important events and decisions
-    
+
   # Conflict resolution
   conflict_resolution: "server_wins"  # or: local_wins, merge, prompt
 ```
@@ -173,13 +174,13 @@ def add_memory_to_memos(content, metadata):
         "category": metadata.get("category", "general"),
         "priority": metadata.get("priority", "medium")
     }
-    
+
     response = requests.post(
         "http://100.106.127.15:8000/product/add",
         json=payload,
         timeout=30
     )
-    
+
     if response.status_code == 200:
         return response.json().get("memory_id")
     else:
@@ -196,13 +197,13 @@ def search_memos(query, filters=None):
         "limit": 20,
         "offset": 0
     }
-    
+
     response = requests.post(
         "http://100.106.127.15:8000/product/search",
         json=payload,
         timeout=30
     )
-    
+
     if response.status_code == 200:
         return response.json().get("memories", [])
     else:
@@ -217,7 +218,7 @@ def get_memory_by_id(memory_id):
         f"http://100.106.127.15:8000/product/get_memory/{memory_id}",
         timeout=30
     )
-    
+
     if response.status_code == 200:
         return response.json()
     elif response.status_code == 404:
@@ -289,12 +290,12 @@ def on_daily_note_completed(date, content):
         "category": "personal",
         "priority": "medium"
     }
-    
+
     memory_id = add_memory_to_memos(content, metadata)
-    
+
     # Store mapping for future reference
     store_mapping(f"daily_{date}", memory_id)
-    
+
     return memory_id
 ```
 
@@ -304,23 +305,23 @@ def on_daily_note_completed(date, content):
 ```python
 def resolve_conflict(local_memory, remote_memory, strategy="server_wins"):
     """Resolve sync conflicts"""
-    
+
     if strategy == "server_wins":
         return remote_memory
-        
+
     elif strategy == "local_wins":
         return local_memory
-        
+
     elif strategy == "merge":
         # Merge content intelligently
         merged = merge_memories(local_memory, remote_memory)
         return merged
-        
+
     elif strategy == "prompt":
         # Ask user to resolve
         resolution = prompt_user_resolution(local_memory, remote_memory)
         return resolution
-        
+
     elif strategy == "new_version":
         # Create new version with both
         return create_merged_version(local_memory, remote_memory)
@@ -330,7 +331,7 @@ def resolve_conflict(local_memory, remote_memory, strategy="server_wins"):
 ```python
 def merge_memories(local_mem, remote_mem):
     """Intelligently merge two memories"""
-    
+
     # Use newer content as base
     if local_mem["updated_at"] > remote_mem["updated_at"]:
         base = local_mem.copy()
@@ -338,22 +339,22 @@ def merge_memories(local_mem, remote_mem):
     else:
         base = remote_mem.copy()
         other = local_mem
-    
+
     # Merge tags (unique)
     base_tags = set(base.get("tags", []))
     other_tags = set(other.get("tags", []))
     base["tags"] = list(base_tags.union(other_tags))
-    
+
     # Merge metadata
     for key in ["category", "priority", "privacy"]:
         if key in other and key not in base:
             base[key] = other[key]
-    
+
     # Add merge note
     if "content" in base and "content" in other:
         merge_note = f"\n\n---\n*Merged from local and remote versions*"
         base["content"] += merge_note
-    
+
     return base
 ```
 
@@ -523,10 +524,10 @@ memos-sync verify-migration --source old --target new
    ```bash
    # Check Tailscale connection
    tailscale status
-   
+
    # Test direct connection
    curl -v http://100.106.127.15:8000/health
-   
+
    # Check firewall rules
    memos-sync diagnose --network
    ```
@@ -535,10 +536,10 @@ memos-sync verify-migration --source old --target new
    ```bash
    # List conflicts
    memos-sync conflicts --list
-   
+
    # Resolve all conflicts
    memos-sync conflicts --resolve-all --strategy merge
-   
+
    # Manual resolution
    memos-sync conflicts --interactive
    ```
@@ -547,10 +548,10 @@ memos-sync verify-migration --source old --target new
    ```bash
    # Enable compression
    memos-sync config set compression.enabled true
-   
+
    # Reduce sync frequency
    memos-sync config set sync.interval 600
-   
+
    # Use smaller batches
    memos-sync config set sync.batch_size 20
    ```
@@ -559,10 +560,10 @@ memos-sync verify-migration --source old --target new
    ```bash
    # Rebuild index
    memos-sync index --rebuild
-   
+
    # Force resync
    memos-sync push --force --all
-   
+
    # Check mappings
    memos-sync mappings --verify
    ```
@@ -580,12 +581,12 @@ privacy:
     - "*key*"
     - "*token*"
     - "*credential*"
-  
+
   # Encrypt sensitive memories
   encryption:
     enabled: true
     algorithm: "AES-256-GCM"
-    
+
   # Anonymize personal data
   anonymize:
     enabled: true

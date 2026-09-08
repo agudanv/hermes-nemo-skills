@@ -1,6 +1,7 @@
 ---
 name: agent-ontology
 description: "A typed vocabulary + constraint system for representing knowledge as a verifiable graph. Everything is an entity with a type, properties, and relations to other entities. Use when creating/querying entities (Person, Project, Task, Event, Document), linking related objects, enforcing constraints, planning multi-step actions as graph transformations, or when skills need to share state. Trigger on 'remember', 'what do I know about', 'link X to Y', 'show dependencies', entity CRUD, or cross-skill data access."
+license: Apache-2.0
 ---
 
 # Ontology — Typed Knowledge Graph System
@@ -58,11 +59,11 @@ constraints:
   Person:
     email: "must be valid email format"
     role: "must be one of: developer, manager, analyst"
-    
+
   Project:
     status: "must be one of: planning, active, completed, archived"
     deadline: "must be future date if status=active"
-    
+
   Task:
     priority: "must be 1-5"
     due_date: "must be after created_date"
@@ -206,9 +207,9 @@ ontology import --file data.csv --format csv --type Person
 Person:
   sync_to_memos: true
   privacy: "private"
-  
+
 Project:
-  sync_to_memos: true  
+  sync_to_memos: true
   privacy: "shared"  # Share with team
 ```
 
@@ -217,18 +218,18 @@ Project:
 # Use ontology to assign tasks to agents
 def assign_task_to_agent(task, agents):
     """Find best agent for a task using ontology"""
-    
+
     # Query agents with required skills
     suitable_agents = ontology.query(
         f"Person where skills includes '{task.required_skill}' "
         f"and current_load < max_capacity"
     )
-    
+
     # Consider past performance
     for agent in suitable_agents:
         agent_score = calculate_agent_score(agent, task)
         # Assign to highest scoring agent
-    
+
     return best_agent
 ```
 
@@ -237,7 +238,7 @@ def assign_task_to_agent(task, agents):
 # Track learning patterns in ontology
 def track_learning_pattern(agent, topic, effectiveness):
     """Record learning patterns in ontology"""
-    
+
     # Create or update LearningPattern entity
     pattern = ontology.get_or_create(
         "LearningPattern",
@@ -245,19 +246,19 @@ def track_learning_pattern(agent, topic, effectiveness):
         topic=topic,
         pattern_type="effectiveness"
     )
-    
+
     # Add effectiveness data point
     pattern.add_data_point(
         timestamp=datetime.now(),
         effectiveness=effectiveness,
         context=agent.current_context
     )
-    
+
     # Analyze patterns over time
     patterns = ontology.query(
         f"LearningPattern where agent='{agent.id}' and topic='{topic}'"
     )
-    
+
     return analyze_patterns(patterns)
 ```
 
@@ -273,7 +274,7 @@ ontology create Person "Carol" --role "devops" --skills "Docker,AWS"
 
 # 2. Assign team members
 ontology relate Person alice works_on Project "Web App"
-ontology relate Person bob works_on Project "Web App" 
+ontology relate Person bob works_on Project "Web App"
 ontology relate Person carol works_on Project "Web App"
 
 # 3. Create tasks with dependencies
@@ -338,39 +339,39 @@ ontology:
     format: "yaml"  # or: json, toml
     compression: true
     backup_count: 7
-    
+
   # Indexing
   indexing:
     auto_index: true
     index_types: ["Person", "Project", "Task", "Event"]
     update_frequency: "on_change"  # or: hourly, daily
-    
+
   # Validation
   validation:
     strict_mode: true
     auto_validate: true
     validate_on_save: true
-    
+
   # Privacy
   privacy:
     encrypt_sensitive: true
     sensitive_fields: ["email", "phone", "address"]
     anonymize_for_export: true
-    
+
   # Integration
   integration:
     memos_sync:
       enabled: true
       sync_entities: ["Person", "Project", "Task"]
-      
+
     clawteam:
       enabled: true
       entity_types: ["Person", "Task", "Project"]
-      
+
     proactive_agent:
       enabled: true
       monitor_changes: true
-      
+
   # Advanced
   advanced:
     graph_traversal_max_depth: 10
@@ -408,7 +409,7 @@ ontology create Project "wa"   # Too cryptic
 Person:
   email: "must match email regex"
   role: "must be one of: developer, manager, analyst, tester"
-  
+
 Task:
   status: "must be: todo, in_progress, blocked, completed"
   priority: "must be 1-5"
@@ -434,10 +435,10 @@ ontology analyze --performance
    ```bash
    # Check if entity exists
    ontology get Person john_doe
-   
+
    # Search for similar entities
    ontology search "john" --type Person
-   
+
    # Check indexes
    ontology index status
    ```
@@ -446,10 +447,10 @@ ontology analyze --performance
    ```bash
    # See specific violation
    ontology validate Person john_doe --verbose
-   
+
    # List all constraints for type
    ontology constraints Person
-   
+
    # Temporarily disable constraints
    ontology create Person test --email "invalid" --no-validate
    ```
@@ -458,10 +459,10 @@ ontology analyze --performance
    ```bash
    # Rebuild indexes
    ontology reindex --all
-   
+
    # Clear cache
    ontology cache clear
-   
+
    # Analyze query performance
    ontology analyze query "Person where role='developer'"
    ```
@@ -470,10 +471,10 @@ ontology analyze --performance
    ```bash
    # Validate import file
    ontology import --file data.json --validate-only
-   
+
    # Export with error checking
    ontology export --format json --validate
-   
+
    # Repair corrupted data
    ontology repair --backup restore_latest
    ```
@@ -512,7 +513,7 @@ ontology schema add --file new_type.yaml
 @ontology.query_function
 def find_experts(topic, min_experience_years=3):
     """Find experts on a topic with minimum experience"""
-    
+
     return ontology.query(
         f"Person where skills includes '{topic}' "
         f"and experience_years >= {min_experience_years} "
@@ -529,16 +530,16 @@ experts = ontology.call("find_experts", "machine_learning", 5)
 class ProjectManagementPlugin:
     def __init__(self, ontology):
         self.ontology = ontology
-    
+
     def calculate_project_health(self, project_id):
         """Calculate health score for project"""
         project = self.ontology.get("Project", project_id)
         tasks = self.ontology.query(f"Task where part_of Project {project_id}")
-        
+
         completed = sum(1 for t in tasks if t.status == "completed")
         total = len(tasks)
         overdue = sum(1 for t in tasks if t.due_date < datetime.now())
-        
+
         health_score = (completed / total * 100) - (overdue * 10)
         return max(0, min(100, health_score))
 

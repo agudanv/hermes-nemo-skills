@@ -1,6 +1,7 @@
 ---
 name: outlook-email-search
 description: Search the Outlook mailbox via Microsoft Graph to find and read emails that help answer user questions.
+license: Apache-2.0
 ---
 
 # outlook-email-search

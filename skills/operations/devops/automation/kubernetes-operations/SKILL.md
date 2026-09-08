@@ -1,6 +1,7 @@
 ---
 name: devops-automation-kubernetes-operations
 description: Kubernetes operations including manifests, Helm charts, operators, troubleshooting, and resource management
+license: Apache-2.0
 ---
 
 # Kubernetes Operations

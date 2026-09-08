@@ -45,9 +45,7 @@ OpenAI's multilingual speech recognition model.
 pip install -U openai-whisper
 
 # Requires ffmpeg
-# macOS: brew install ffmpeg
 # Ubuntu: sudo apt install ffmpeg
-# Windows: choco install ffmpeg
 ```
 
 ### Basic transcription
@@ -316,5 +314,3 @@ Full list: 99 languages total
 - **Model Card**: https://github.com/openai/whisper/blob/main/model-card.md
 - **Colab**: Available in repo
 - **License**: MIT
-
-

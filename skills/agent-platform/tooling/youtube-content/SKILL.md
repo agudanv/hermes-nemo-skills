@@ -5,6 +5,7 @@ description: >
   (chapters, summaries, threads, blog posts). Use when the user shares a YouTube
   URL or video link, asks to summarize a video, requests a transcript, or wants
   to extract and reformat content from any YouTube video.
+license: Apache-2.0
 ---
 
 # YouTube Content Tool

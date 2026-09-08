@@ -2,6 +2,7 @@
 name: agent-memory-maintenance
 description: "Memory maintenance and update procedures for OpenClaw agents - how to properly update MEMORY.md and USER PROFILE files during session resets"
 tags: [memory, maintenance, session-reset, openclaw]
+license: Apache-2.0
 ---
 
 # Memory Maintenance Skill

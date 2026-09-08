@@ -1,6 +1,7 @@
 ---
 name: agent-evolver
 description: "Meta-skill that allows OpenClaw agents to inspect their own runtime history, identify failures or inefficiencies, and autonomously write new code or update their own memory to improve performance. Use when an agent needs to self-improve, audit past performance, optimize workflows, or adapt to new patterns without human intervention."
+license: Apache-2.0
 ---
 
 # Evolver — Autonomous Agent Self-Improvement
@@ -102,7 +103,7 @@ evolver:
     - external_tool_changes
   performance_metrics:
     - execution_time
-    - success_rate  
+    - success_rate
     - user_satisfaction
     - token_efficiency
 ```

@@ -4,6 +4,7 @@ title: Fix Hermes Gateway status.py ImportError
 description: Diagnose and fix missing import errors in gateway/status.py, particularly 'acquire_scoped_lock' and other missing functions
 trigger: When encountering ImportError from gateway.status (e.g., "cannot import name 'acquire_scoped_lock' from 'gateway.status'")
 tags: [hermes, gateway, windows, compatibility, import-error]
+license: Apache-2.0
 ---
 
 # Fixing Hermes Gateway status.py ImportError

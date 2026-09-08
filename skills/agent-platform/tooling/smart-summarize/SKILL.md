@@ -1,6 +1,7 @@
 ---
 name: agent-smart-summarize
 description: "智能统一摘要技能 — 自动识别 URL 类型，选择最佳抓取策略，交给 LLM 生成总结。触发词：总结、摘要、summarize、总结这个链接、帮我看看这个页面。适用场景：文章/文档链接、Bilibili 视频、任何网页内容提取。"
+license: Apache-2.0
 ---
 
 # Smart Summarize — 智能统一摘要

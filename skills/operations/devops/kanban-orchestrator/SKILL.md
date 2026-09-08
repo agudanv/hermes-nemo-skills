@@ -7,6 +7,7 @@ metadata:
   hermes:
     tags: [kanban, multi-agent, orchestration, routing]
     related_skills: [kanban-worker]
+license: MIT
 ---
 
 <!-- SPDX-FileCopyrightText: 2025 Nous Research -->

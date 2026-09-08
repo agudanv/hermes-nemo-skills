@@ -1,6 +1,7 @@
 ---
 name: nemoclaw-autoheal
 description: Guide users through Hermes availability checks and the optional host-side auto-heal setup without crossing the sandbox-to-host boundary.
+license: Apache-2.0
 ---
 
 <!--

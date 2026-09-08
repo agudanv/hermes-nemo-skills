@@ -1,6 +1,7 @@
 ---
 name: agent-clawteam
 description: "Multi-agent swarm coordination via the ClawTeam CLI. Use when the user wants to create agent teams, spawn multiple agents to work in parallel, coordinate tasks with dependencies, broadcast messages between agents, monitor progress via kanban board, or launch pre-built team templates (hedge-fund, code-review, research-paper). ClawTeam uses git worktree isolation + tmux + filesystem-based messaging. Trigger phrases: team, swarm, multi-agent, clawteam, spawn agents, parallel agents, agent team."
+license: Apache-2.0
 ---
 
 # ClawTeam — Multi-Agent Swarm Coordination

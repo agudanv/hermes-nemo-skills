@@ -1,6 +1,7 @@
 ---
 name: slack-channel-summarizer
 description: Read and summarize Slack channel history from inside the NemoClaw sandbox.
+license: Apache-2.0
 ---
 
 # slack-channel-summarizer

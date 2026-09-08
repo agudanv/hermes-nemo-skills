@@ -10,7 +10,6 @@ This directory contains official LaTeX templates for major machine learning and 
 
 **Setup:**
 1. Install [TeX Live](https://www.tug.org/texlive/) (full distribution recommended)
-   - macOS: `brew install --cask mactex`
    - Ubuntu: `sudo apt install texlive-full`
    - Windows: Download from [tug.org/texlive](https://www.tug.org/texlive/)
 

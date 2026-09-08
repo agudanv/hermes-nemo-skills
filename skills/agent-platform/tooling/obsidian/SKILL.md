@@ -1,6 +1,7 @@
 ---
 name: agent-obsidian
 description: Read, search, and create notes in the Obsidian vault.
+license: Apache-2.0
 ---
 
 # Obsidian Vault

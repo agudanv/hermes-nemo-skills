@@ -49,8 +49,6 @@ Install `gws`:
 cargo install google-workspace-cli
 # or via npm (recommended, downloads prebuilt binary):
 npm install -g @googleworkspace/cli
-# or via Homebrew:
-brew install googleworkspace-cli
 ```
 
 Verify: `gws --version`

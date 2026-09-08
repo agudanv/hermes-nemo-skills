@@ -2,6 +2,7 @@
 name: agent-bilibili-transcript
 version: "2.2.0"
 description: "Transcribe Bilibili videos to text with high accuracy using Whisper medium model. Use when the user provides a Bilibili video URL (BVxxxxx) and wants to: (1) Extract the complete audio content as text with high accuracy, (2) Get a detailed summary of the video content, (3) Save the transcript as a formatted TXT file instead of posting long text to Discord. Automatically detects CC subtitles if available, otherwise uses Whisper medium model with GPU acceleration. Output saves to 'Bilibili transcript' folder by default, includes video metadata, summary section, and full transcript in Simplified Chinese."
+license: Apache-2.0
 ---
 
 # Bilibili Transcript v2.2

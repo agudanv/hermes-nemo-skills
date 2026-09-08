@@ -3,6 +3,7 @@ name: devops-practices
 description: Kubernetes operations, container builds, CI/CD workflows, and local development environment management
 version: 1.0.0
 tags: [devops, kubernetes, docker, ci-cd, k3s, github-actions]
+license: Apache-2.0
 ---
 
 # DevOps Skill

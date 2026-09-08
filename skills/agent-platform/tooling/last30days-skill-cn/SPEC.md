@@ -72,8 +72,8 @@ python3 scripts/last30days.py <topic> [选项]
 
 **说明：**
 
-- Windows 下脚本会对 stdout/stderr 做 UTF-8 配置，避免中文乱码。  
-- `--search` 未指定时，默认尝试全部 8 源（具体是否返回数据取决于密钥与网络）。  
+- Windows 下脚本会对 stdout/stderr 做 UTF-8 配置，避免中文乱码。
+- `--search` 未指定时，默认尝试全部 8 源（具体是否返回数据取决于密钥与网络）。
 - `topic` 为 `setup`（不区分大小写）时走 `setup_wizard`，不写研究报告。
 
 ---
@@ -88,9 +88,9 @@ python3 scripts/last30days.py <topic> [选项]
 
 主要文件：
 
-- `report.md` — 完整 Markdown 报告  
-- `report.json` — 归一化后的结构化报告  
-- `last30days.context.md` — 供其他 Skill / 提示词引用的精简上下文  
+- `report.md` — 完整 Markdown 报告
+- `report.json` — 归一化后的结构化报告
+- `last30days.context.md` — 供其他 Skill / 提示词引用的精简上下文
 
 可通过环境变量 **`LAST30DAYS_OUTPUT_DIR`** 覆盖目录；若主目录无写权限，`render.py` 可能回退到临时目录下的 `last30days/out`（见实现）。
 
@@ -98,8 +98,8 @@ python3 scripts/last30days.py <topic> [选项]
 
 ## 配置路径（摘要）
 
-- 全局：`~/.config/last30days-cn/.env`  
-- 可选项目级：向上查找 `.claude/last30days-cn.env`  
-- 目录覆盖：`LAST30DAYS_CN_CONFIG_DIR` / `LAST30DAYS_CONFIG_DIR`  
+- 全局：`~/.config/last30days-cn/.env`
+- 可选项目级：向上查找 `.claude/last30days-cn.env`
+- 目录覆盖：`LAST30DAYS_CN_CONFIG_DIR` / `LAST30DAYS_CONFIG_DIR`
 
 完整键名以 `scripts/lib/env.py` 中 `get_config()` 为准。

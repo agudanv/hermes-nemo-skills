@@ -6,6 +6,7 @@ metadata:
   hermes:
     tags: [location, maps, nearby, places, restaurants, local]
     related_skills: []
+license: Apache-2.0
 ---
 
 # Find Nearby — Local Place Discovery
